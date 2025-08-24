@@ -375,14 +375,14 @@ export default function VisitorEntryPage() {
 
         {/* Quick Actions */}
         <div className="mt-6 grid grid-cols-2 gap-4">
-          <Link href="/visitor-list">
+          <Link href="/entries">
             <Button variant="outline" className="w-full bg-transparent">
-              View Visitors
+              View Entries
             </Button>
           </Link>
-          <Link href="/visitor-exit">
+          <Link href="/visitor-list">
             <Button variant="outline" className="w-full bg-transparent">
-              Exit Visitor
+              All Visitors
             </Button>
           </Link>
         </div>

@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Users, Bus, BarChart3, Bell, Shield } from "lucide-react"
+import { Users, Bus, BarChart3, Bell, Shield, List } from "lucide-react"
 
 export default function HomePage() {
   return (
@@ -50,16 +50,32 @@ export default function HomePage() {
             </Card>
           </Link>
 
-          <Link href="/notifications">
+          <Link href="/entries">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer border-2 border-green-200 hover:border-green-300">
+              <CardHeader className="pb-3">
+                <div className="flex items-center space-x-3">
+                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                    <Users className="w-6 h-6 text-green-600" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg">Entries</CardTitle>
+                    <CardDescription>Currently checked-in visitors</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
+          </Link>
+
+          <Link href="/visitor-list">
             <Card className="hover:shadow-lg transition-shadow cursor-pointer border-2 border-purple-200 hover:border-purple-300">
               <CardHeader className="pb-3">
                 <div className="flex items-center space-x-3">
                   <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <Bell className="w-6 h-6 text-purple-600" />
+                    <List className="w-6 h-6 text-purple-600" />
                   </div>
                   <div>
-                    <CardTitle className="text-lg">Notifications</CardTitle>
-                    <CardDescription>Authority requests & updates</CardDescription>
+                    <CardTitle className="text-lg">Visitor List</CardTitle>
+                    <CardDescription>View all visitor records</CardDescription>
                   </div>
                 </div>
               </CardHeader>
