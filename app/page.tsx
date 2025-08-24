@@ -1,18 +1,19 @@
-
 "use client"
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { 
-  Users, 
-  Bus, 
-  UserCheck, 
-  ClipboardList, 
-  BarChart3, 
+import {
+  Users,
+  Bus,
+  UserCheck,
+  ClipboardList,
+  BarChart3,
   Shield,
   LogOut,
-  Settings
+  Settings,
+  UserPlus, // Added for consistency in changes
+  UserMinus // Added for consistency in changes
 } from "lucide-react"
 import { useUserAuth } from "@/hooks/useUserAuth"
 import ProtectedWrapper from "@/components/protected-wrapper"
@@ -51,69 +52,73 @@ export default function HomePage() {
 
           {/* Main Menu */}
           <div className="space-y-4">
-            {/* Visitor Management */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center">
-                  <Users className="w-5 h-5 mr-2 text-blue-600" />
-                  Visitor Management
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="grid grid-cols-2 gap-3">
-                  <Link href="/visitor-entry">
-                    <Button variant="outline" className="w-full h-12 flex flex-col items-center justify-center space-y-1">
-                      <UserCheck className="w-4 h-4" />
-                      <span className="text-xs">New Visitor</span>
+            {/* Visitor Management - Hidden for authorities */}
+            {user?.role !== 'authority' && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center">
+                    <UserPlus className="w-5 h-5 mr-2 text-blue-600" />
+                    Visitor Management
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <Link href="/visitor-entry">
+                      <Button variant="outline" className="w-full h-12 flex flex-col items-center justify-center space-y-1">
+                        <UserPlus className="w-4 h-4" />
+                        <span className="text-xs">New Visitor</span>
+                      </Button>
+                    </Link>
+                    <Link href="/visitor-exit">
+                      <Button variant="outline" className="w-full h-12 flex flex-col items-center justify-center space-y-1">
+                        <UserMinus className="w-4 h-4" />
+                        <span className="text-xs">Visitor Exit</span>
+                      </Button>
+                    </Link>
+                  </div>
+                  <Link href="/visitor-list">
+                    <Button variant="outline" className="w-full">
+                      <ClipboardList className="w-4 h-4 mr-2" />
+                      View All Visitors
                     </Button>
                   </Link>
-                  <Link href="/visitor-exit">
-                    <Button variant="outline" className="w-full h-12 flex flex-col items-center justify-center space-y-1">
-                      <Users className="w-4 h-4" />
-                      <span className="text-xs">Visitor Exit</span>
-                    </Button>
-                  </Link>
-                </div>
-                <Link href="/visitor-list">
-                  <Button variant="outline" className="w-full">
-                    <ClipboardList className="w-4 h-4 mr-2" />
-                    View All Visitors
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            )}
 
-            {/* Vehicle Management */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center">
-                  <Bus className="w-5 h-5 mr-2 text-green-600" />
-                  Vehicle Management
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="grid grid-cols-2 gap-3">
-                  <Link href="/vehicle-entry">
-                    <Button variant="outline" className="w-full h-12 flex flex-col items-center justify-center space-y-1">
-                      <Bus className="w-4 h-4" />
-                      <span className="text-xs">Vehicle Entry</span>
+            {/* Vehicle Management - Hidden for authorities */}
+            {user?.role !== 'authority' && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center">
+                    <Bus className="w-5 h-5 mr-2 text-green-600" />
+                    Vehicle Management
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <Link href="/vehicle-entry">
+                      <Button variant="outline" className="w-full h-12 flex flex-col items-center justify-center space-y-1">
+                        <Bus className="w-4 h-4" />
+                        <span className="text-xs">Vehicle Entry</span>
+                      </Button>
+                    </Link>
+                    <Link href="/vehicle-exit">
+                      <Button variant="outline" className="w-full h-12 flex flex-col items-center justify-center space-y-1">
+                        <Bus className="w-4 h-4" />
+                        <span className="text-xs">Vehicle Exit</span>
+                      </Button>
+                    </Link>
+                  </div>
+                  <Link href="/vehicle-list">
+                    <Button variant="outline" className="w-full">
+                      <ClipboardList className="w-4 h-4 mr-2" />
+                      View All Vehicles
                     </Button>
                   </Link>
-                  <Link href="/vehicle-exit">
-                    <Button variant="outline" className="w-full h-12 flex flex-col items-center justify-center space-y-1">
-                      <Bus className="w-4 h-4" />
-                      <span className="text-xs">Vehicle Exit</span>
-                    </Button>
-                  </Link>
-                </div>
-                <Link href="/vehicle-list">
-                  <Button variant="outline" className="w-full">
-                    <ClipboardList className="w-4 h-4 mr-2" />
-                    View All Vehicles
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Authority Features */}
             {(user?.role === 'authority' || user?.role === 'admin') && (
