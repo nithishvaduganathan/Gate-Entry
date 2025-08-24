@@ -44,11 +44,14 @@ export default function LoginPage() {
       }
 
       // Store user info in localStorage for session management
-      localStorage.setItem("currentUser", JSON.stringify({
+      const userData = {
         id: users.id,
         username: users.username,
         role: users.role
-      }))
+      }
+      
+      localStorage.setItem("currentUser", JSON.stringify(userData))
+      console.log("User logged in successfully:", userData) // Debug log
 
       // Redirect to dashboard
       router.push("/dashboard")

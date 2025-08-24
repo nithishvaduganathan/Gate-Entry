@@ -7,42 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, Users, Bus, Shield, Clock, TrendingUp, Calendar, FileText } from "lucide-react"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
-
-// Placeholder for ProtectedWrapper component
-const ProtectedWrapper = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
-      setIsAuthenticated(!!session);
-      setIsLoading(false);
-    };
-    checkAuth();
-  }, []);
-
-  if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
-  }
-
-  if (!isAuthenticated) {
-    // Redirect to login page or show login form
-    // For simplicity, let's just show a message and a login button
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
-        <h1 className="text-2xl font-bold mb-4">Please Log In</h1>
-        <p className="mb-4">You need to be logged in to access this page.</p>
-        <Link href="/login">
-          <Button>Go to Login</Button>
-        </Link>
-      </div>
-    );
-  }
-
-  return children;
-};
+import ProtectedWrapper from "@/components/protected-wrapper"
 
 
 interface DashboardStats {

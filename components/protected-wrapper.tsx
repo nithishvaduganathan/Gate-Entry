@@ -5,6 +5,12 @@ import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useUserAuth } from "@/hooks/useUserAuth"
 
+"use client"
+
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { useUserAuth } from "@/hooks/useUserAuth"
+
 interface ProtectedWrapperProps {
   children: React.ReactNode
   allowedRoles?: string[]
