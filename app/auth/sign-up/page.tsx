@@ -31,22 +31,15 @@ export default function SignUpPage() {
     }
 
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}/protected`,
+        },
       })
       if (error) throw error
-      
-      // Auto-confirm the user (bypass email verification)
-      if (data.user && !data.user.email_confirmed_at) {
-        const { error: confirmError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        })
-        if (confirmError) throw confirmError
-      }
-      
-      router.push("/")
+      router.push("/auth/sign-up-success")
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred")
     } finally {
