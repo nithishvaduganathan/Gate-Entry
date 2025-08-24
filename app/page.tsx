@@ -106,6 +106,16 @@ export default function HomePage() {
           </Link>
         </div>
 
+        {/* Notifications */}
+        <div className="mb-8">
+          <Link href="/notifications">
+            <Button className="w-full h-16 bg-purple-600 hover:bg-purple-700 text-white flex items-center justify-center space-x-3">
+              <Bell className="w-6 h-6" />
+              <span className="text-lg font-medium">Notifications & Approvals</span>
+            </Button>
+          </Link>
+        </div>
+
         {/* Footer */}
         <div className="text-center mt-12 text-sm text-gray-500">
           <p>Secure • Efficient • Reliable</p>
