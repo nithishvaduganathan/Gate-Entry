@@ -2,9 +2,11 @@
 -- Setup default admin user
 -- This script creates the default admin user with email manojbharathi@sincet.ac.in
 
--- First, ensure we have the admin role
+-- First, ensure we have all required roles
 INSERT INTO public.user_roles (name, description) VALUES 
-  ('admin', 'Full system access - can manage users and view all data')
+  ('admin', 'Full system access - can manage users and view all data'),
+  ('authority', 'Can view analytics and approve requests'),
+  ('user', 'Can view analytics and make entries')
 ON CONFLICT (name) DO NOTHING;
 
 -- Create a function to setup the default admin profile
@@ -45,14 +47,16 @@ BEGIN
     SELECT id INTO admin_role_id FROM public.user_roles WHERE name = 'admin';
     SELECT id INTO default_role_id FROM public.user_roles WHERE name = 'user';
     
-    -- Insert user profile
+    -- Only insert if the profile doesn't already exist
     INSERT INTO public.user_profiles (
         id,
         email,
         full_name,
         role_id,
         department,
-        is_active
+        is_active,
+        created_at,
+        updated_at
     ) VALUES (
         NEW.id,
         NEW.email,
@@ -65,14 +69,26 @@ BEGIN
             WHEN NEW.email = 'manojbharathi@sincet.ac.in' THEN 'Administration'
             ELSE ''
         END,
-        true
-    );
+        true,
+        NOW(),
+        NOW()
+    ) ON CONFLICT (id) DO UPDATE SET
+        role_id = CASE 
+            WHEN NEW.email = 'manojbharathi@sincet.ac.in' THEN admin_role_id
+            ELSE user_profiles.role_id
+        END,
+        full_name = COALESCE(NEW.raw_user_meta_data->>'full_name', user_profiles.full_name),
+        department = CASE 
+            WHEN NEW.email = 'manojbharathi@sincet.ac.in' THEN 'Administration'
+            ELSE user_profiles.department
+        END,
+        updated_at = NOW();
     
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Create the trigger
+-- Drop existing trigger if it exists and create the new one
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
     AFTER INSERT ON auth.users
