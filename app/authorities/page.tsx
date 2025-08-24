@@ -7,6 +7,14 @@ import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, Shield, Plus, Edit, Trash2, Phone, Mail, Building } from "lucide-react"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
+import { useRouter } from 'next/router'; // Import useRouter
+
+// Dummy user object for demonstration. In a real app, this would come from authentication context or state.
+const user = {
+  id: '1',
+  email: 'admin@example.com',
+  role: 'admin', // 'admin', 'authority', 'user'
+};
 
 interface Authority {
   id: string
@@ -23,6 +31,17 @@ export default function AuthoritiesPage() {
   const [authorities, setAuthorities] = useState<Authority[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [filter, setFilter] = useState<"all" | "active" | "inactive">("active")
+  const router = useRouter(); // Initialize router
+
+  // Redirect to login if user is not authenticated or not an admin
+  useEffect(() => {
+    // In a real app, you'd check actual authentication status and role.
+    // For this example, we assume the user object is available and check its role.
+    if (!user || user.role !== 'admin') {
+      router.push('/login'); // Redirect to login page
+    }
+  }, [router]);
+
 
   useEffect(() => {
     fetchAuthorities()
@@ -97,6 +116,25 @@ export default function AuthoritiesPage() {
         </div>
       </div>
     )
+  }
+
+  // If not an admin, redirect to login (this check is also in useEffect)
+  if (!user || user.role !== 'admin') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 p-4 flex items-center justify-center">
+        <Card className="max-w-sm w-full text-center">
+          <CardHeader>
+            <CardTitle>Access Denied</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="mb-4">You do not have permission to view this page. Please log in as an administrator.</p>
+            <Link href="/login">
+              <Button>Go to Login</Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (

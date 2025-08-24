@@ -2,6 +2,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import ProtectedWrapper from "@/components/protected-wrapper"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -114,7 +115,8 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <ProtectedWrapper allowedRoles={["admin"]}>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -285,5 +287,6 @@ export default function AdminPage() {
         </div>
       </div>
     </div>
+    </ProtectedWrapper>
   )
 }

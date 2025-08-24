@@ -8,6 +8,43 @@ import { ArrowLeft, Users, Bus, Shield, Clock, TrendingUp, Calendar, FileText } 
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
 
+// Placeholder for ProtectedWrapper component
+const ProtectedWrapper = ({ children }) => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsAuthenticated(!!session);
+      setIsLoading(false);
+    };
+    checkAuth();
+  }, []);
+
+  if (isLoading) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  }
+
+  if (!isAuthenticated) {
+    // Redirect to login page or show login form
+    // For simplicity, let's just show a message and a login button
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
+        <h1 className="text-2xl font-bold mb-4">Please Log In</h1>
+        <p className="mb-4">You need to be logged in to access this page.</p>
+        <Link href="/login">
+          <Button>Go to Login</Button>
+        </Link>
+      </div>
+    );
+  }
+
+  return children;
+};
+
+
 interface DashboardStats {
   totalVisitors: number
   activeVisitors: number
@@ -193,219 +230,221 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-100 p-4">
-      <div className="max-w-md mx-auto">
-        {/* Header */}
-        <div className="flex items-center mb-6 pt-4">
-          <Link href="/">
-            <Button variant="ghost" size="sm" className="mr-2">
-              <ArrowLeft className="w-4 h-4" />
+    <ProtectedWrapper>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-100 p-4">
+        <div className="max-w-md mx-auto">
+          {/* Header */}
+          <div className="flex items-center mb-6 pt-4">
+            <Link href="/">
+              <Button variant="ghost" size="sm" className="mr-2">
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+            </Link>
+            <div className="flex-1">
+              <h1 className="text-xl font-bold text-gray-900">Dashboard</h1>
+              <p className="text-sm text-gray-600">Gate entry system overview</p>
+            </div>
+            <Button size="sm" variant="outline" onClick={fetchDashboardData}>
+              <TrendingUp className="w-4 h-4 mr-1" />
+              Refresh
             </Button>
-          </Link>
-          <div className="flex-1">
-            <h1 className="text-xl font-bold text-gray-900">Dashboard</h1>
-            <p className="text-sm text-gray-600">Gate entry system overview</p>
           </div>
-          <Button size="sm" variant="outline" onClick={fetchDashboardData}>
-            <TrendingUp className="w-4 h-4 mr-1" />
-            Refresh
-          </Button>
-        </div>
 
-        {/* Today's Summary */}
-        <Card className="mb-6">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center">
-              <Calendar className="w-4 h-4 mr-2" />
-              Today's Activity
-            </CardTitle>
-            <CardDescription>
-              {new Date().toLocaleDateString("en-IN", {
-                weekday: "long",
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">{stats.todayVisitors}</div>
-                <div className="text-sm text-gray-600">Visitors</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-green-600">{stats.todayBuses}</div>
-                <div className="text-sm text-gray-600">Vehicles</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Statistics Grid */}
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center space-x-2">
-                <Users className="w-5 h-5 text-blue-600" />
-                <div>
-                  <div className="text-lg font-bold">{stats.activeVisitors}</div>
-                  <div className="text-xs text-gray-600">Active Visitors</div>
+          {/* Today's Summary */}
+          <Card className="mb-6">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center">
+                <Calendar className="w-4 h-4 mr-2" />
+                Today's Activity
+              </CardTitle>
+              <CardDescription>
+                {new Date().toLocaleDateString("en-IN", {
+                  weekday: "long",
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-600">{stats.todayVisitors}</div>
+                  <div className="text-sm text-gray-600">Visitors</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600">{stats.todayBuses}</div>
+                  <div className="text-sm text-gray-600">Vehicles</div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center space-x-2">
-                <Bus className="w-5 h-5 text-green-600" />
-                <div>
-                  <div className="text-lg font-bold">{stats.activeBuses}</div>
-                  <div className="text-xs text-gray-600">Vehicles On Campus</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center space-x-2">
-                <Clock className="w-5 h-5 text-orange-600" />
-                <div>
-                  <div className="text-lg font-bold">{stats.pendingApprovals}</div>
-                  <div className="text-xs text-gray-600">Pending Approvals</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center space-x-2">
-                <Shield className="w-5 h-5 text-purple-600" />
-                <div>
-                  <div className="text-lg font-bold">{stats.totalAuthorities}</div>
-                  <div className="text-xs text-gray-600">Active Authorities</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Recent Activity */}
-        <Card className="mb-6">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Recent Activity</CardTitle>
-            <CardDescription>Latest entries and exits</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {recentActivity.length === 0 ? (
-                <div className="text-center text-gray-500 py-4">No recent activity</div>
-              ) : (
-                recentActivity.map((activity) => (
-                  <div
-                    key={`${activity.type}-${activity.id}`}
-                    className="flex items-center space-x-3 p-2 rounded-lg bg-gray-50"
-                  >
-                    <div className="flex-shrink-0">{getActivityIcon(activity.type)}</div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium truncate">{activity.name}</div>
-                      <div className="text-xs text-gray-600">
-                        {activity.action} • {formatTime(activity.time)}
-                      </div>
-                    </div>
-                    {activity.status && (
-                      <Badge className={getStatusColor(activity.status)} size="sm">
-                        {activity.status}
-                      </Badge>
-                    )}
+          {/* Statistics Grid */}
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center space-x-2">
+                  <Users className="w-5 h-5 text-blue-600" />
+                  <div>
+                    <div className="text-lg font-bold">{stats.activeVisitors}</div>
+                    <div className="text-xs text-gray-600">Active Visitors</div>
                   </div>
-                ))
-              )}
-            </div>
-          </CardContent>
-        </Card>
+                </div>
+              </CardContent>
+            </Card>
 
-        {/* Quick Actions */}
-        <Card className="mb-6">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Quick Actions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-3">
-              <Link href="/visitor-entry">
-                <Button
-                  variant="outline"
-                  className="w-full h-12 flex flex-col items-center justify-center space-y-1 bg-transparent"
-                >
-                  <Users className="w-4 h-4" />
-                  <span className="text-xs">New Visitor</span>
-                </Button>
-              </Link>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center space-x-2">
+                  <Bus className="w-5 h-5 text-green-600" />
+                  <div>
+                    <div className="text-lg font-bold">{stats.activeBuses}</div>
+                    <div className="text-xs text-gray-600">Vehicles On Campus</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-              <Link href="/vehicle-entry">
-                <Button
-                  variant="outline"
-                  className="w-full h-12 flex flex-col items-center justify-center space-y-1 bg-transparent"
-                >
-                  <Bus className="w-4 h-4" />
-                  <span className="text-xs">New Vehicle</span>
-                </Button>
-              </Link>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center space-x-2">
+                  <Clock className="w-5 h-5 text-orange-600" />
+                  <div>
+                    <div className="text-lg font-bold">{stats.pendingApprovals}</div>
+                    <div className="text-xs text-gray-600">Pending Approvals</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-              <Link href="/authority-approvals">
-                <Button
-                  variant="outline"
-                  className="w-full h-12 flex flex-col items-center justify-center space-y-1 bg-transparent"
-                >
-                  <Clock className="w-4 h-4" />
-                  <span className="text-xs">Approvals</span>
-                </Button>
-              </Link>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center space-x-2">
+                  <Shield className="w-5 h-5 text-purple-600" />
+                  <div>
+                    <div className="text-lg font-bold">{stats.totalAuthorities}</div>
+                    <div className="text-xs text-gray-600">Active Authorities</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
-              <Link href="/reports">
-                <Button
-                  variant="outline"
-                  className="w-full h-12 flex flex-col items-center justify-center space-y-1 bg-transparent"
-                >
-                  <FileText className="w-4 h-4" />
-                  <span className="text-xs">Reports</span>
-                </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* System Status */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">System Status</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <span className="text-sm">Database</span>
-                <Badge className="bg-green-100 text-green-800">Online</Badge>
+          {/* Recent Activity */}
+          <Card className="mb-6">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Recent Activity</CardTitle>
+              <CardDescription>Latest entries and exits</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {recentActivity.length === 0 ? (
+                  <div className="text-center text-gray-500 py-4">No recent activity</div>
+                ) : (
+                  recentActivity.map((activity) => (
+                    <div
+                      key={`${activity.type}-${activity.id}`}
+                      className="flex items-center space-x-3 p-2 rounded-lg bg-gray-50"
+                    >
+                      <div className="flex-shrink-0">{getActivityIcon(activity.type)}</div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium truncate">{activity.name}</div>
+                        <div className="text-xs text-gray-600">
+                          {activity.action} • {formatTime(activity.time)}
+                        </div>
+                      </div>
+                      {activity.status && (
+                        <Badge className={getStatusColor(activity.status)} size="sm">
+                          {activity.status}
+                        </Badge>
+                      )}
+                    </div>
+                  ))
+                )}
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm">Google Sheets</span>
-                <Badge className="bg-green-100 text-green-800">Connected</Badge>
+            </CardContent>
+          </Card>
+
+          {/* Quick Actions */}
+          <Card className="mb-6">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Quick Actions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-3">
+                <Link href="/visitor-entry">
+                  <Button
+                    variant="outline"
+                    className="w-full h-12 flex flex-col items-center justify-center space-y-1 bg-transparent"
+                  >
+                    <Users className="w-4 h-4" />
+                    <span className="text-xs">New Visitor</span>
+                  </Button>
+                </Link>
+
+                <Link href="/vehicle-entry">
+                  <Button
+                    variant="outline"
+                    className="w-full h-12 flex flex-col items-center justify-center space-y-1 bg-transparent"
+                  >
+                    <Bus className="w-4 h-4" />
+                    <span className="text-xs">New Vehicle</span>
+                  </Button>
+                </Link>
+
+                <Link href="/authority-approvals">
+                  <Button
+                    variant="outline"
+                    className="w-full h-12 flex flex-col items-center justify-center space-y-1 bg-transparent"
+                  >
+                    <Clock className="w-4 h-4" />
+                    <span className="text-xs">Approvals</span>
+                  </Button>
+                </Link>
+
+                <Link href="/reports">
+                  <Button
+                    variant="outline"
+                    className="w-full h-12 flex flex-col items-center justify-center space-y-1 bg-transparent"
+                  >
+                    <FileText className="w-4 h-4" />
+                    <span className="text-xs">Reports</span>
+                  </Button>
+                </Link>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm">Last Updated</span>
-                <span className="text-sm text-gray-600">
-                  {new Date().toLocaleTimeString("en-IN", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </span>
+            </CardContent>
+          </Card>
+
+          {/* System Status */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">System Status</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm">Database</span>
+                  <Badge className="bg-green-100 text-green-800">Online</Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm">Google Sheets</span>
+                  <Badge className="bg-green-100 text-green-800">Connected</Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm">Last Updated</span>
+                  <span className="text-sm text-gray-600">
+                    {new Date().toLocaleTimeString("en-IN", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       </div>
-    </div>
+    </ProtectedWrapper>
   )
 }
