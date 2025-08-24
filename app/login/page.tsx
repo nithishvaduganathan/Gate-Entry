@@ -53,8 +53,8 @@ export default function LoginPage() {
       localStorage.setItem("currentUser", JSON.stringify(userData))
       console.log("User logged in successfully:", userData) // Debug log
 
-      // Redirect to dashboard
-      router.push("/dashboard")
+      // Redirect to home page
+      router.push("/")
     } catch (error) {
       setError("Login failed. Please try again.")
     } finally {
