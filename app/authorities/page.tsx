@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, Shield, Plus, Edit, Trash2, Phone, Mail, Building } from "lucide-react"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
-import { useRouter } from 'next/router'; // Import useRouter
+import { useRouter } from 'next/navigation'; // Import useRouter
 
 // Dummy user object for demonstration. In a real app, this would come from authentication context or state.
 const user = {
