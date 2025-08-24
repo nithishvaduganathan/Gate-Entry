@@ -52,6 +52,52 @@ CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
 
+-- Insert default admin user (this will be created manually through auth.users)
+-- The trigger will automatically create the profile
+INSERT INTO auth.users (
+  id,
+  instance_id,
+  email,
+  encrypted_password,
+  email_confirmed_at,
+  created_at,
+  updated_at,
+  raw_app_meta_data,
+  raw_user_meta_data,
+  is_super_admin,
+  role,
+  aud,
+  confirmation_token,
+  email_change,
+  email_change_token_new,
+  recovery_token
+) VALUES (
+  gen_random_uuid(),
+  '00000000-0000-0000-0000-000000000000',
+  'manojbharathi@sincet.ac.in',
+  crypt('sincetadmin', gen_salt('bf')),
+  NOW(),
+  NOW(),
+  NOW(),
+  '{"provider":"email","providers":["email"]}',
+  '{"full_name":"System Administrator"}',
+  false,
+  'authenticated',
+  'authenticated',
+  '',
+  '',
+  '',
+  ''
+) ON CONFLICT (email) DO UPDATE SET
+  encrypted_password = crypt('sincetadmin', gen_salt('bf')),
+  updated_at = NOW();
+
+-- Update the admin user profile to have admin role
+UPDATE public.user_profiles 
+SET role_id = (SELECT id FROM public.user_roles WHERE name = 'admin'),
+    full_name = 'System Administrator'
+WHERE email = 'manojbharathi@sincet.ac.in';
+
 -- Create indexes
 CREATE INDEX IF NOT EXISTS idx_user_profiles_role_id ON public.user_profiles(role_id);
 CREATE INDEX IF NOT EXISTS idx_user_profiles_email ON public.user_profiles(email);
