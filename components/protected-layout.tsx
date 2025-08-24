@@ -2,6 +2,7 @@
 "use client"
 
 import { useAuth } from "@/hooks/useAuth"
+import { useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -39,8 +40,13 @@ export default function ProtectedLayout({ children, requiredPermissions = [] }: 
     )
   }
 
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/auth/login')
+    }
+  }, [user, loading, router])
+
   if (!user) {
-    router.push('/auth/login')
     return null
   }
 
