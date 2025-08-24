@@ -1,15 +1,9 @@
+
 import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
 
 export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl
-  
-  // Allow auth pages to pass through without authentication
-  if (pathname.startsWith('/auth/')) {
-    return NextResponse.next()
-  }
-  
-  // Allow all other requests to pass through 
+  // Allow all requests to pass through without authentication
   return NextResponse.next()
 }
 

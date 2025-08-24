@@ -16,6 +16,7 @@ import { sendToWebhook } from "@/lib/csv-export"
 import CameraCapture from "@/components/camera-capture"
 import SpeechInput from "@/components/speech-input"
 import ProtectedLayout from "@/components/protected-layout"
+import SimpleLayout from "@/components/simple-layout"
 
 interface Authority {
   id: string
@@ -179,8 +180,8 @@ export default function VisitorEntryPage() {
   }
 
   return (
-    <ProtectedLayout requiredPermissions={['create_entries']}>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <SimpleLayout title="Visitor Entry" description="Register new visitors" showBackButton={true}>
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-100 p-4">
         <div className="max-w-md mx-auto">
           {/* Header */}
           <div className="flex items-center mb-6 pt-4">
@@ -398,6 +399,6 @@ export default function VisitorEntryPage() {
           <SpeechInput onTranscript={handleSpeechTranscript} onClose={() => setShowSpeechInput(false)} />
         )}
       </div>
-    </ProtectedLayout>
+    </SimpleLayout>
   )
 }

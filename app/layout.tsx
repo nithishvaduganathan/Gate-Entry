@@ -1,32 +1,33 @@
-import type React from "react"
+
 import type { Metadata } from "next"
-import { GeistSans } from "geist/font/sans"
-import { GeistMono } from "geist/font/mono"
+import { Geist, Geist_Mono } from "next/font/google"
 import "./globals.css"
+
+const geist = Geist({
+  subsets: ["latin"],
+  variable: "--font-geist-sans",
+})
+
+const geistMono = Geist_Mono({
+  subsets: ["latin"],
+  variable: "--font-geist-mono",
+})
 
 export const metadata: Metadata = {
   title: "SINCET Gate Entry System",
-  description: "Gate entry application for college security",
-  generator: "v0.app",
+  description: "Gate entry management system for SINCET",
 }
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode
-}>) {
+}) {
   return (
-    <html lang="en" className={GeistSans.variable}>
-      <head>
-        {/* 🚫 Disable Zooming */}
-        <meta
-          name="viewport"
-          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-        />
-
-        <link rel="icon" href="sincet1.png" type="image/png" />
-      </head>
-      <body>{children}</body>
+    <html lang="en">
+      <body className={`${geist.variable} ${geistMono.variable} antialiased`}>
+        {children}
+      </body>
     </html>
   )
 }

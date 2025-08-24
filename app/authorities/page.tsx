@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, Shield, Plus, Edit, Trash2, Phone, Mail, Building } from "lucide-react"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
+import SimpleLayout from "@/components/protected-layout"
 
 interface Authority {
   id: string
@@ -91,151 +92,155 @@ export default function AuthoritiesPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 p-4">
-        <div className="max-w-md mx-auto pt-8">
-          <div className="text-center">Loading authorities...</div>
+      <SimpleLayout title="Authority Management" description="Manage college authorities" showBackButton={true}>
+        <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 p-4">
+          <div className="max-w-md mx-auto pt-8">
+            <div className="text-center">Loading authorities...</div>
+          </div>
         </div>
-      </div>
+      </SimpleLayout>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 p-4">
-      <div className="max-w-md mx-auto">
-        {/* Header */}
-        <div className="flex items-center mb-6 pt-4">
-          <Link href="/">
-            <Button variant="ghost" size="sm" className="mr-2">
-              <ArrowLeft className="w-4 h-4" />
-            </Button>
-          </Link>
-          <div className="flex-1">
-            <h1 className="text-xl font-bold text-gray-900">Authority Management</h1>
-            <p className="text-sm text-gray-600">Manage college authorities</p>
+    <SimpleLayout title="Authority Management" description="Manage college authorities" showBackButton={true}>
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 p-4">
+        <div className="max-w-md mx-auto">
+          {/* Header */}
+          <div className="flex items-center mb-6 pt-4">
+            <Link href="/">
+              <Button variant="ghost" size="sm" className="mr-2">
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+            </Link>
+            <div className="flex-1">
+              <h1 className="text-xl font-bold text-gray-900">Authority Management</h1>
+              <p className="text-sm text-gray-600">Manage college authorities</p>
+            </div>
+            <Link href="/authorities/add">
+              <Button size="sm" className="bg-purple-600 hover:bg-purple-700">
+                <Plus className="w-4 h-4 mr-1" />
+                Add
+              </Button>
+            </Link>
           </div>
-          <Link href="/authorities/add">
-            <Button size="sm" className="bg-purple-600 hover:bg-purple-700">
-              <Plus className="w-4 h-4 mr-1" />
-              Add
+
+          {/* Filter Buttons */}
+          <div className="flex space-x-2 mb-6">
+            <Button
+              variant={filter === "active" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setFilter("active")}
+              className={filter === "active" ? "bg-purple-600 hover:bg-purple-700" : ""}
+            >
+              Active
             </Button>
-          </Link>
-        </div>
+            <Button
+              variant={filter === "inactive" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setFilter("inactive")}
+            >
+              Inactive
+            </Button>
+            <Button variant={filter === "all" ? "default" : "outline"} size="sm" onClick={() => setFilter("all")}>
+              All
+            </Button>
+          </div>
 
-        {/* Filter Buttons */}
-        <div className="flex space-x-2 mb-6">
-          <Button
-            variant={filter === "active" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setFilter("active")}
-            className={filter === "active" ? "bg-purple-600 hover:bg-purple-700" : ""}
-          >
-            Active
-          </Button>
-          <Button
-            variant={filter === "inactive" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setFilter("inactive")}
-          >
-            Inactive
-          </Button>
-          <Button variant={filter === "all" ? "default" : "outline"} size="sm" onClick={() => setFilter("all")}>
-            All
-          </Button>
-        </div>
-
-        {/* Authorities List */}
-        <div className="space-y-4">
-          {authorities.length === 0 ? (
-            <Card>
-              <CardContent className="pt-6 text-center text-gray-500">No authorities found</CardContent>
-            </Card>
-          ) : (
-            authorities.map((authority) => (
-              <Card key={authority.id} className="hover:shadow-md transition-shadow">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center space-x-2">
-                      <Shield className="w-4 h-4 text-gray-500" />
-                      <CardTitle className="text-base">{authority.name}</CardTitle>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Badge className={getDesignationColor(authority.designation)}>{authority.designation}</Badge>
-                      <Badge
-                        className={authority.is_active ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}
-                      >
-                        {authority.is_active ? "Active" : "Inactive"}
-                      </Badge>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {authority.department && (
-                    <div className="flex items-center space-x-2 text-sm text-gray-600">
-                      <Building className="w-4 h-4" />
-                      <span>{authority.department}</span>
-                    </div>
-                  )}
-
-                  {authority.phone && (
-                    <div className="flex items-center space-x-2 text-sm text-gray-600">
-                      <Phone className="w-4 h-4" />
-                      <span>{authority.phone}</span>
-                    </div>
-                  )}
-
-                  {authority.email && (
-                    <div className="flex items-center space-x-2 text-sm text-gray-600">
-                      <Mail className="w-4 h-4" />
-                      <span>{authority.email}</span>
-                    </div>
-                  )}
-
-                  <div className="flex space-x-2 pt-2">
-                    <Link href={`/authorities/edit/${authority.id}`}>
-                      <Button variant="outline" size="sm" className="flex items-center space-x-1 bg-transparent">
-                        <Edit className="w-3 h-3" />
-                        <span>Edit</span>
-                      </Button>
-                    </Link>
-
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => toggleAuthorityStatus(authority.id, authority.is_active)}
-                      className={
-                        authority.is_active ? "text-red-600 hover:text-red-700" : "text-green-600 hover:text-green-700"
-                      }
-                    >
-                      {authority.is_active ? "Deactivate" : "Activate"}
-                    </Button>
-
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => deleteAuthority(authority.id)}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </Button>
-                  </div>
-                </CardContent>
+          {/* Authorities List */}
+          <div className="space-y-4">
+            {authorities.length === 0 ? (
+              <Card>
+                <CardContent className="pt-6 text-center text-gray-500">No authorities found</CardContent>
               </Card>
-            ))
-          )}
-        </div>
+            ) : (
+              authorities.map((authority) => (
+                <Card key={authority.id} className="hover:shadow-md transition-shadow">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Shield className="w-4 h-4 text-gray-500" />
+                        <CardTitle className="text-base">{authority.name}</CardTitle>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Badge className={getDesignationColor(authority.designation)}>{authority.designation}</Badge>
+                        <Badge
+                          className={authority.is_active ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}
+                        >
+                          {authority.is_active ? "Active" : "Inactive"}
+                        </Badge>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {authority.department && (
+                      <div className="flex items-center space-x-2 text-sm text-gray-600">
+                        <Building className="w-4 h-4" />
+                        <span>{authority.department}</span>
+                      </div>
+                    )}
 
-        {/* Quick Actions */}
-        <div className="mt-6 grid grid-cols-2 gap-4">
-          <Link href="/authority-approvals">
-            <Button variant="outline" className="w-full bg-transparent">
-              Pending Approvals
+                    {authority.phone && (
+                      <div className="flex items-center space-x-2 text-sm text-gray-600">
+                        <Phone className="w-4 h-4" />
+                        <span>{authority.phone}</span>
+                      </div>
+                    )}
+
+                    {authority.email && (
+                      <div className="flex items-center space-x-2 text-sm text-gray-600">
+                        <Mail className="w-4 h-4" />
+                        <span>{authority.email}</span>
+                      </div>
+                    )}
+
+                    <div className="flex space-x-2 pt-2">
+                      <Link href={`/authorities/edit/${authority.id}`}>
+                        <Button variant="outline" size="sm" className="flex items-center space-x-1 bg-transparent">
+                          <Edit className="w-3 h-3" />
+                          <span>Edit</span>
+                        </Button>
+                      </Link>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => toggleAuthorityStatus(authority.id, authority.is_active)}
+                        className={
+                          authority.is_active ? "text-red-600 hover:text-red-700" : "text-green-600 hover:text-green-700"
+                        }
+                      >
+                        {authority.is_active ? "Deactivate" : "Activate"}
+                      </Button>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => deleteAuthority(authority.id)}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
+
+          {/* Quick Actions */}
+          <div className="mt-6 grid grid-cols-2 gap-4">
+            <Link href="/authority-approvals">
+              <Button variant="outline" className="w-full bg-transparent">
+                Pending Approvals
+              </Button>
+            </Link>
+            <Button onClick={fetchAuthorities} variant="outline" className="w-full bg-transparent">
+              Refresh List
             </Button>
-          </Link>
-          <Button onClick={fetchAuthorities} variant="outline" className="w-full bg-transparent">
-            Refresh List
-          </Button>
+          </div>
         </div>
       </div>
-    </div>
+    </SimpleLayout>
   )
 }

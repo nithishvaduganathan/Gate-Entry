@@ -8,6 +8,7 @@ import { ArrowLeft, Users, Bus, Shield, Clock, TrendingUp, Calendar, FileText } 
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
 import ProtectedLayout from "@/components/protected-layout"
+import SimpleLayout from "@/components/simple-layout"
 
 interface DashboardStats {
   totalVisitors: number
@@ -185,18 +186,18 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <ProtectedLayout requiredPermissions={['view_analytics']}>
+      <SimpleLayout title="Analytics Dashboard" description="View entry statistics and reports">
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-100 p-4">
           <div className="max-w-md mx-auto pt-8">
             <div className="text-center">Loading dashboard...</div>
           </div>
         </div>
-      </ProtectedLayout>
+      </SimpleLayout>
     )
   }
 
   return (
-    <ProtectedLayout requiredPermissions={['view_analytics']}>
+    <SimpleLayout title="Analytics Dashboard" description="View entry statistics and reports">
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-100 p-4">
         <div className="max-w-md mx-auto">
           {/* Header */}
@@ -411,6 +412,6 @@ export default function DashboardPage() {
           </Card>
         </div>
       </div>
-    </ProtectedLayout>
+    </SimpleLayout>
   )
 }
