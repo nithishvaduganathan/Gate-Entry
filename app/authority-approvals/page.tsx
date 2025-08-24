@@ -12,6 +12,7 @@ interface PendingVisitor {
   id: string
   name: string
   phone: string
+  email: string
   purpose: string
   entry_time: string
   status: string
@@ -40,6 +41,7 @@ export default function AuthorityApprovalsPage() {
         id,
         name,
         phone,
+        email,
         purpose,
         entry_time,
         status,
@@ -47,7 +49,8 @@ export default function AuthorityApprovalsPage() {
         notes,
         authorities (
           name,
-          designation
+          designation,
+          email
         )
       `)
       .eq("status", "pending")
@@ -166,6 +169,16 @@ export default function AuthorityApprovalsPage() {
                     <Phone className="w-4 h-4" />
                     <span>{visitor.phone}</span>
                   </div>
+
+                  {visitor.email && (
+                    <div className="flex items-center space-x-2 text-sm text-gray-600">
+                      <span>📧</span>
+                      <span>{visitor.email}</span>
+                      {visitor.authorities?.email === visitor.email && (
+                        <span className="text-green-600 font-semibold">✓ Email Match</span>
+                      )}
+                    </div>
+                  )}
 
                   <div className="flex items-start space-x-2 text-sm text-gray-600">
                     <FileText className="w-4 h-4 mt-0.5" />

@@ -20,13 +20,16 @@ interface Authority {
   id: string
   name: string
   designation: string
-  department: string
+  department: string | null
+  email: string | null
+  role: string
 }
 
 export default function VisitorEntryPage() {
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
+    email: "", // Added email field
     purpose: "",
     authorityId: "",
     notes: "",
@@ -46,9 +49,9 @@ export default function VisitorEntryPage() {
     const supabase = createClient()
     const { data, error } = await supabase
       .from("authorities")
-      .select("id, name, designation, department")
+      .select("id, name, designation, department, email, role") // Fetching email and role
       .eq("is_active", true)
-      .order("designation", { ascending: true })
+      .order("name")
 
     if (data) {
       setAuthorities(data)
@@ -106,47 +109,73 @@ export default function VisitorEntryPage() {
       }
 
       const supabase = createClient()
-      const { data, error } = await supabase
+
+      // Determine status and if permission is required
+      const selectedAuthority = authorities.find((auth) => auth.id === formData.authorityId);
+      const requiresPermission = !!formData.authorityId;
+      const permissionGranted = !requiresPermission; // Automatically approved if no authority is selected
+      let visitorStatus = requiresPermission ? "pending" : "approved";
+
+
+      const { data: visitor, error } = await supabase
         .from("visitors")
         .insert({
           name: formData.name,
           phone: formData.phone,
+          email: formData.email, // Added email
           purpose: formData.purpose,
           authority_id: formData.authorityId || null,
-          notes: formData.notes,
+          status: visitorStatus,
           photo_url: photoUrl,
+          notes: formData.notes,
           created_by: "Gatekeeper", // This would be dynamic in real app
-          status: "pending",
+          authority_permission_required: requiresPermission,
+          authority_permission_granted: permissionGranted,
+          permission_granted_at: permissionGranted ? new Date().toISOString() : null,
         })
         .select()
         .single()
 
       if (error) throw error
 
-      if (formData.authorityId) {
-        const selectedAuthority = authorities.find((auth) => auth.id === formData.authorityId)
-
-        const { error: notificationError } = await supabase.from("notifications").insert({
-          visitor_id: data.id,
+      // Create notifications for authority and admin if required
+      if (formData.authorityId && visitor) {
+        // Notification for the selected authority
+        await supabase.from("notifications").insert({
+          visitor_id: visitor.id,
           authority_id: formData.authorityId,
           type: "visitor_request",
-          title: "New Visitor Request",
-          message: `${formData.name} (${formData.phone}) wants to visit for: ${formData.purpose}. Please approve or reject this request.`,
+          title: "New Visitor Permission Request",
+          message: `${formData.name} (${formData.email}) is requesting permission to enter. Purpose: ${formData.purpose}`,
+          is_read: false,
         })
 
-        if (notificationError) {
-          console.error("Error creating notification:", notificationError)
+        // Also create notification for admin if the selected authority is not admin
+        if (selectedAuthority?.role !== 'admin') {
+          const adminAuthority = authorities.find(auth => auth.role === 'admin')
+          if (adminAuthority) {
+            await supabase.from("notifications").insert({
+              visitor_id: visitor.id,
+              authority_id: adminAuthority.id,
+              type: "visitor_request",
+              title: "New Visitor Permission Request (Admin Copy)",
+              message: `${formData.name} (${formData.email}) is requesting permission to enter. Purpose: ${formData.purpose}. Assigned to: ${selectedAuthority.name}`,
+              is_read: false,
+            })
+          }
         }
       }
 
+      // Simulate webhook call
       const webhookSuccess = await sendToWebhook(
         {
           name: formData.name,
           phone: formData.phone,
+          email: formData.email,
           purpose: formData.purpose,
           entryTime: new Date().toISOString(),
-          authorityName: data.authority_id ? `${data.authority_id.name} (${data.authority_id.designation})` : undefined,
-          status: "pending",
+          authorityName: selectedAuthority ? `${selectedAuthority.name} (${selectedAuthority.designation})` : undefined,
+          status: visitorStatus,
           photoUrl: photoUrl || undefined,
           notes: formData.notes || undefined,
         },
@@ -157,6 +186,7 @@ export default function VisitorEntryPage() {
       setFormData({
         name: "",
         phone: "",
+        email: "",
         purpose: "",
         authorityId: "",
         notes: "",
@@ -285,13 +315,26 @@ export default function VisitorEntryPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="phone">Mobile Number *</Label>
+                <Label htmlFor="phone">Phone Number *</Label>
                 <Input
                   id="phone"
                   type="tel"
                   placeholder="+91-XXXXXXXXXX"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  required
+                />
+              </div>
+
+              {/* Email Input Field */}
+              <div className="space-y-2">
+                <Label htmlFor="email">Email Address *</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Enter email address"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   required
                 />
               </div>
@@ -367,7 +410,7 @@ export default function VisitorEntryPage() {
           <Button
             type="submit"
             className="w-full h-12 text-base"
-            disabled={isLoading || !formData.name || !formData.phone || !formData.purpose}
+            disabled={isLoading || !formData.name || !formData.phone || !formData.email || !formData.purpose}
           >
             {isLoading ? "Registering..." : "Register Visitor"}
           </Button>
