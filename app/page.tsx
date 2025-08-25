@@ -28,11 +28,11 @@ export default function HomePage() {
           {/* Header */}
           <div className="flex items-center justify-between mb-6 pt-4">
             <div className="flex items-center">
-              <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
-                <Shield className="w-5 h-5 text-white" />
+              <div className="h-8 w-8 bg-white rounded-lg flex items-center justify-center mr-3 overflow-hidden">
+                <img src="/sincet1.png" alt="SINCET Logo" className="w-full h-full object-contain p-0.5" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">Gate Entry System</h1>
+                <h1 className="text-xl font-bold text-gray-900">SINCET Gate Entry System</h1>
                 <p className="text-sm text-gray-600">Welcome, {user?.username}</p>
               </div>
             </div>

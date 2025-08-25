@@ -55,15 +55,18 @@ export default function AddAuthorityPage() {
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 p-4">
       <div className="max-w-md mx-auto">
         {/* Header */}
-        <div className="flex items-center mb-6 pt-4">
+        <div className="flex items-center mb-6">
           <Link href="/authorities">
             <Button variant="ghost" size="sm" className="mr-2">
               <ArrowLeft className="w-4 h-4" />
             </Button>
           </Link>
+          <div className="h-8 w-8 bg-white rounded-lg flex items-center justify-center mr-3 overflow-hidden">
+            <img src="/sincet1.png" alt="SINCET Logo" className="w-full h-full object-contain p-0.5" />
+          </div>
           <div>
-            <h1 className="text-xl font-bold text-gray-900">Add Authority</h1>
-            <p className="text-sm text-gray-600">Create new authority profile</p>
+            <h1 className="text-2xl font-bold">Add New Authority</h1>
+            <p className="text-sm text-gray-600">Add a new authority to the system</p>
           </div>
         </div>
 
@@ -72,7 +75,10 @@ export default function AddAuthorityPage() {
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center">
-                <Shield className="w-4 h-4 mr-2" />
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 mr-2">
+                  <rect width="20" height="14" x="2" y="7" rx="2" ry="2" />
+                  <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+                </svg>
                 Basic Information
               </CardTitle>
               <CardDescription>Enter authority details</CardDescription>

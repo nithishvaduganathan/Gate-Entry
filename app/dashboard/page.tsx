@@ -205,6 +205,9 @@ export default function DashboardPage() {
                 <ArrowLeft className="w-4 h-4" />
               </Button>
             </Link>
+            <div className="h-8 w-8 bg-white rounded-lg flex items-center justify-center mr-3 overflow-hidden">
+              <img src="/sincet1.png" alt="SINCET Logo" className="w-full h-full object-contain p-0.5" />
+            </div>
             <div className="flex-1">
               <h1 className="text-xl font-bold text-gray-900">Dashboard</h1>
               <p className="text-sm text-gray-600">Gate entry system overview</p>
@@ -320,7 +323,7 @@ export default function DashboardPage() {
                         </div>
                       </div>
                       {activity.status && (
-                        <Badge className={getStatusColor(activity.status)} size="sm">
+                        <Badge className={getStatusColor(activity.status)}>
                           {activity.status}
                         </Badge>
                       )}

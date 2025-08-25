@@ -66,8 +66,8 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <div className="mx-auto h-12 w-12 bg-blue-600 rounded-lg flex items-center justify-center mb-4">
-            <Shield className="h-6 w-6 text-white" />
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-white p-2">
+            <img src="/sincet1.png" alt="SINCET Logo" className="h-full w-full object-contain" />
           </div>
           <h2 className="text-3xl font-bold text-gray-900">Gate Entry System</h2>
           <p className="mt-2 text-sm text-gray-600">Sign in to access the system</p>

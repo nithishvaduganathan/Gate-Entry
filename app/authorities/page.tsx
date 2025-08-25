@@ -192,18 +192,15 @@ export default function AuthoritiesPage() {
               <Card key={authority.id} className="hover:shadow-md transition-shadow">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
-                    <div className="flex items-center space-x-2">
-                      <Shield className="w-4 h-4 text-gray-500" />
+                    <div className="flex items-center">
+                      <div className="h-10 w-10 bg-white rounded-lg flex items-center justify-center mr-3 overflow-hidden">
+                        <img src="/sincet1.png" alt="SINCET Logo" className="w-full h-full object-contain p-1" />
+                      </div>
                       <CardTitle className="text-base">{authority.name}</CardTitle>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <Badge className={getDesignationColor(authority.designation)}>{authority.designation}</Badge>
-                      <Badge
-                        className={authority.is_active ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}
-                      >
-                        {authority.is_active ? "Active" : "Inactive"}
-                      </Badge>
-                    </div>
+                    <Badge variant={authority.is_active ? "default" : "secondary"}>
+                      {authority.is_active ? "Active" : "Inactive"}
+                    </Badge>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-3">

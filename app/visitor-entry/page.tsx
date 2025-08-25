@@ -22,7 +22,7 @@ interface Authority {
   designation: string
   department: string | null
   email: string | null
-  role: string
+  is_active: boolean
 }
 
 export default function VisitorEntryPage() {
@@ -46,15 +46,44 @@ export default function VisitorEntryPage() {
   }, [])
 
   const fetchAuthorities = async () => {
-    const supabase = createClient()
-    const { data, error } = await supabase
-      .from("authorities")
-      .select("id, name, designation, department, email, role") // Fetching email and role
-      .eq("is_active", true)
-      .order("name")
+    try {
+      console.log('Creating Supabase client...')
+      const supabase = createClient()
+      
+      // Log environment variables (for debugging - remove in production)
+      console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL ? 'Set' : 'Not set')
+      
+      console.log('Fetching authorities from database...')
+      const { data, error, status } = await supabase
+        .from("authorities")
+        .select("id, name, designation, department, email, is_active")
+        .eq("is_active", true)
+        .order("name")
 
-    if (data) {
-      setAuthorities(data)
+      console.log('Query status:', status)
+      
+      if (error) {
+        console.error('Supabase query error:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        })
+        throw error
+      }
+
+      console.log('Successfully fetched authorities:', data)
+      setAuthorities(data || [])
+    } catch (error) {
+      console.error('Error in fetchAuthorities:', {
+        error,
+        env: {
+          hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+          hasKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+          urlLength: process.env.NEXT_PUBLIC_SUPABASE_URL?.length,
+          keyLength: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.length
+        }
+      })
     }
   }
 
@@ -116,20 +145,32 @@ export default function VisitorEntryPage() {
       const permissionGranted = !requiresPermission; // Automatically approved if no authority is selected
       let visitorStatus = requiresPermission ? "pending" : "approved";
 
+      console.log('Creating visitor record with data:', {
+        name: formData.name,
+        phone: formData.phone,
+        email: formData.email,
+        purpose: formData.purpose,
+        authority_id: formData.authorityId || null,
+        status: visitorStatus,
+        photo_url: photoUrl,
+        notes: formData.notes,
+        created_by: "Gatekeeper",
+        authority_permission_granted: permissionGranted,
+        permission_granted_at: permissionGranted ? new Date().toISOString() : null,
+      })
 
       const { data: visitor, error } = await supabase
         .from("visitors")
         .insert({
           name: formData.name,
           phone: formData.phone,
-          email: formData.email, // Added email
+          email: formData.email,
           purpose: formData.purpose,
           authority_id: formData.authorityId || null,
           status: visitorStatus,
           photo_url: photoUrl,
           notes: formData.notes,
-          created_by: "Gatekeeper", // This would be dynamic in real app
-          authority_permission_required: requiresPermission,
+          created_by: "Gatekeeper",
           authority_permission_granted: permissionGranted,
           permission_granted_at: permissionGranted ? new Date().toISOString() : null,
         })
@@ -150,16 +191,16 @@ export default function VisitorEntryPage() {
           is_read: false,
         })
 
-        // Also create notification for admin if the selected authority is not admin
-        if (selectedAuthority?.role !== 'admin') {
-          const adminAuthority = authorities.find(auth => auth.role === 'admin')
+        // Also create notification for admin if the selected authority is not a principal
+        if (selectedAuthority?.designation !== 'Principal') {
+          const adminAuthority = authorities.find(auth => auth.designation === 'Principal')
           if (adminAuthority) {
             await supabase.from("notifications").insert({
               visitor_id: visitor.id,
               authority_id: adminAuthority.id,
               type: "visitor_request",
               title: "New Visitor Permission Request (Admin Copy)",
-              message: `${formData.name} (${formData.email}) is requesting permission to enter. Purpose: ${formData.purpose}. Assigned to: ${selectedAuthority.name}`,
+              message: `${formData.name} (${formData.email}) is requesting permission to enter. Purpose: ${formData.purpose}. Assigned to: ${selectedAuthority?.name || 'Unknown'}`,
               is_read: false,
             })
           }
@@ -199,9 +240,19 @@ export default function VisitorEntryPage() {
       } else {
         alert("Visitor registered successfully! (External system integration not configured)")
       }
-    } catch (error) {
-      console.error("Error registering visitor:", error)
-      alert("Error registering visitor. Please try again.")
+    } catch (error: any) {
+      console.error("Error registering visitor:", {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code,
+        stack: error.stack,
+        response: error.response?.data || 'No response data',
+        status: error.status,
+        statusCode: error.statusCode,
+        statusText: error.statusText,
+      })
+      alert(`Error registering visitor: ${error.message || 'Unknown error'}. Please check the console for more details.`)
     } finally {
       setIsLoading(false)
     }
@@ -328,14 +379,13 @@ export default function VisitorEntryPage() {
 
               {/* Email Input Field */}
               <div className="space-y-2">
-                <Label htmlFor="email">Email Address *</Label>
+                <Label htmlFor="email">Email Address (Optional)</Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="Enter email address"
+                  placeholder="Enter email address (optional)"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  required
                 />
               </div>
 
