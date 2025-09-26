@@ -1,0 +1,10 @@
+# Copy this file to .env and customize values
+# Flask configuration
+SECRET_KEY="change-me"
+
+# Optional: Google Sheets integration
+GOOGLE_SHEETS_ENABLED=false
+GOOGLE_SHEETS_WEBHOOK_URL=
+
+# Optional: Database override (default uses SQLite as set in config.py)
+# SQLALCHEMY_DATABASE_URI=
