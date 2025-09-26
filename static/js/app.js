@@ -5,6 +5,11 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
 });
 
+// Global variables for camera and speech
+let videoStream = null;
+let speechRecognition = null;
+let isRecording = false;
+
 function initializeApp() {
     // Auto-dismiss alerts after 5 seconds
     setTimeout(function() {
@@ -39,97 +44,239 @@ function initializeApp() {
 
 // Camera functionality
 function initializeCamera() {
+    const cameraModal = document.getElementById('cameraModal');
     const video = document.getElementById('cameraPreview');
     const canvas = document.getElementById('photoCanvas');
     const captureBtn = document.getElementById('captureBtn');
     
-    if (!video || !canvas || !captureBtn) return;
+    if (!cameraModal || !video || !canvas || !captureBtn) return;
 
-    navigator.mediaDevices.getUserMedia({ video: true })
-        .then(function(stream) {
-            video.srcObject = stream;
-        })
-        .catch(function(err) {
-            console.error('Error accessing camera:', err);
-            alert('Could not access camera. Please check permissions.');
-        });
+    // Start camera when modal opens
+    cameraModal.addEventListener('shown.bs.modal', function() {
+        startCamera();
+    });
+
+    // Stop camera when modal closes
+    cameraModal.addEventListener('hidden.bs.modal', function() {
+        stopCamera();
+    });
 
     captureBtn.addEventListener('click', function() {
-        const context = canvas.getContext('2d');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        context.drawImage(video, 0, 0);
-        
-        // Convert to blob and send to form
-        canvas.toBlob(function(blob) {
-            const file = new File([blob], 'photo.jpg', { type: 'image/jpeg' });
-            const photoInput = document.getElementById('photoInput');
-            const dataTransfer = new DataTransfer();
-            dataTransfer.items.add(file);
-            photoInput.files = dataTransfer.files;
-            
-            // Show preview
-            const preview = document.getElementById('photoPreview');
-            preview.src = URL.createObjectURL(blob);
-            preview.style.display = 'block';
-            
-            // Hide modal
-            const modal = bootstrap.Modal.getInstance(document.getElementById('cameraModal'));
-            modal.hide();
-        });
+        capturePhoto();
     });
+}
+
+function startCamera() {
+    const video = document.getElementById('cameraPreview');
+    
+    navigator.mediaDevices.getUserMedia({ 
+        video: { 
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+            facingMode: 'user'
+        } 
+    })
+    .then(function(stream) {
+        videoStream = stream;
+        video.srcObject = stream;
+    })
+    .catch(function(err) {
+        console.error('Error accessing camera:', err);
+        alert('Could not access camera. Please check permissions or try uploading a photo instead.');
+    });
+}
+
+function stopCamera() {
+    if (videoStream) {
+        videoStream.getTracks().forEach(track => {
+            track.stop();
+        });
+        videoStream = null;
+    }
+}
+
+function capturePhoto() {
+    const video = document.getElementById('cameraPreview');
+    const canvas = document.getElementById('photoCanvas');
+    
+    if (!video.videoWidth || !video.videoHeight) {
+        alert('Camera not ready. Please wait a moment and try again.');
+        return;
+    }
+
+    // Set canvas dimensions to match video
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    
+    // Draw video frame to canvas
+    const context = canvas.getContext('2d');
+    context.drawImage(video, 0, 0);
+    
+    // Convert to blob and update form
+    canvas.toBlob(function(blob) {
+        if (!blob) {
+            alert('Failed to capture photo. Please try again.');
+            return;
+        }
+
+        // Create file from blob
+        const file = new File([blob], 'captured_photo.jpg', { type: 'image/jpeg' });
+        
+        // Update file input
+        const photoInput = document.getElementById('photo');
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        photoInput.files = dataTransfer.files;
+        
+        // Show preview
+        const preview = document.getElementById('photoPreview');
+        const previewContainer = document.getElementById('photoPreviewContainer');
+        const actionsContainer = document.getElementById('photoActionsContainer');
+        
+        preview.src = URL.createObjectURL(blob);
+        previewContainer.style.display = 'block';
+        actionsContainer.style.display = 'none';
+        
+        // Hide modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('cameraModal'));
+        modal.hide();
+        
+        // Stop camera
+        stopCamera();
+    }, 'image/jpeg', 0.8);
 }
 
 // Speech recognition functionality
 function initializeSpeechRecognition() {
+    const speechModal = document.getElementById('speechModal');
+    if (!speechModal) return;
+
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
         console.warn('Speech recognition not supported');
+        // Hide speech input buttons if not supported
+        document.querySelectorAll('[data-bs-target="#speechModal"]').forEach(btn => {
+            btn.style.display = 'none';
+        });
         return;
     }
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
+    speechRecognition = new SpeechRecognition();
     
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    recognition.lang = 'en-US';
+    speechRecognition.continuous = false;
+    speechRecognition.interimResults = true;
+    speechRecognition.lang = 'en-US';
 
-    const startSpeechBtn = document.getElementById('startSpeech');
+    const startSpeechBtn = document.getElementById('startSpeechBtn');
+    const stopSpeechBtn = document.getElementById('stopSpeechBtn');
+    const applySpeechBtn = document.getElementById('applySpeechBtn');
     const speechStatus = document.getElementById('speechStatus');
+    const speechResult = document.getElementById('speechResult');
+    const speechIcon = document.getElementById('speechIcon');
     
     if (!startSpeechBtn) return;
 
     startSpeechBtn.addEventListener('click', function() {
-        const targetField = this.getAttribute('data-target');
-        
-        recognition.start();
-        speechStatus.textContent = 'Listening...';
-        speechStatus.classList.add('text-danger');
-        
-        recognition.onresult = function(event) {
-            const transcript = event.results[0][0].transcript;
-            const targetElement = document.getElementById(targetField);
-            if (targetElement) {
-                targetElement.value = transcript;
-            }
-            speechStatus.textContent = 'Complete';
-            speechStatus.classList.remove('text-danger');
-            speechStatus.classList.add('text-success');
-        };
-        
-        recognition.onerror = function(event) {
-            speechStatus.textContent = 'Error: ' + event.error;
-            speechStatus.classList.remove('text-danger');
-            speechStatus.classList.add('text-warning');
-        };
-        
-        recognition.onend = function() {
-            setTimeout(function() {
-                speechStatus.textContent = '';
-                speechStatus.classList.remove('text-danger', 'text-success', 'text-warning');
-            }, 3000);
-        };
+        startSpeechRecognition();
     });
+
+    stopSpeechBtn.addEventListener('click', function() {
+        stopSpeechRecognition();
+    });
+
+    applySpeechBtn.addEventListener('click', function() {
+        applySpeechToForm();
+    });
+
+    speechRecognition.onstart = function() {
+        isRecording = true;
+        startSpeechBtn.style.display = 'none';
+        stopSpeechBtn.style.display = 'inline-block';
+        speechStatus.textContent = 'Listening... Speak clearly';
+        speechStatus.className = 'text-primary';
+        speechIcon.className = 'bi bi-mic-fill fs-1 text-danger mb-3 speech-indicator';
+    };
+
+    speechRecognition.onresult = function(event) {
+        let transcript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+            if (event.results[i].isFinal) {
+                transcript += event.results[i][0].transcript;
+            }
+        }
+        
+        if (transcript.trim()) {
+            speechResult.textContent = transcript;
+            applySpeechBtn.disabled = false;
+        }
+    };
+
+    speechRecognition.onerror = function(event) {
+        console.error('Speech recognition error:', event.error);
+        speechStatus.textContent = 'Error: ' + event.error;
+        speechStatus.className = 'text-danger';
+        resetSpeechUI();
+    };
+
+    speechRecognition.onend = function() {
+        isRecording = false;
+        if (speechResult.textContent.trim()) {
+            speechStatus.textContent = 'Speech captured successfully';
+            speechStatus.className = 'text-success';
+        } else {
+            speechStatus.textContent = 'No speech detected. Please try again.';
+            speechStatus.className = 'text-warning';
+        }
+        resetSpeechUI();
+    };
+}
+
+function startSpeechRecognition() {
+    if (!speechRecognition) return;
+    
+    const speechResult = document.getElementById('speechResult');
+    speechResult.textContent = 'Speech will appear here...';
+    document.getElementById('applySpeechBtn').disabled = true;
+    
+    try {
+        speechRecognition.start();
+    } catch (error) {
+        console.error('Failed to start speech recognition:', error);
+        alert('Failed to start speech recognition. Please try again.');
+    }
+}
+
+function stopSpeechRecognition() {
+    if (speechRecognition && isRecording) {
+        speechRecognition.stop();
+    }
+}
+
+function resetSpeechUI() {
+    document.getElementById('startSpeechBtn').style.display = 'inline-block';
+    document.getElementById('stopSpeechBtn').style.display = 'none';
+    document.getElementById('speechIcon').className = 'bi bi-mic-fill fs-1 text-primary mb-3';
+}
+
+function applySpeechToForm() {
+    const speechResult = document.getElementById('speechResult');
+    const speechField = document.getElementById('speechField');
+    const targetFieldId = speechField.value;
+    const targetElement = document.getElementById(targetFieldId);
+    
+    if (targetElement && speechResult.textContent.trim() !== 'Speech will appear here...') {
+        targetElement.value = speechResult.textContent.trim();
+        
+        // Hide modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('speechModal'));
+        modal.hide();
+        
+        // Reset speech UI
+        speechResult.textContent = 'Speech will appear here...';
+        document.getElementById('applySpeechBtn').disabled = true;
+        document.getElementById('speechStatus').textContent = 'Click start to begin voice input';
+        document.getElementById('speechStatus').className = 'text-muted';
+    }
 }
 
 // Dashboard stats refresh

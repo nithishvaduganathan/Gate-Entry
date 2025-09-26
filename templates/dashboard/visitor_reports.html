@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Visitor Reports - SINCET Gate Entry System{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex align-items-center mb-4">
+        <a href="{{ url_for('dashboard.reports') }}" class="btn btn-outline-secondary me-3">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div>
+            <h1 class="h4 fw-bold mb-0">Visitor Reports</h1>
+            <p class="text-muted mb-0">Detailed visitor analytics</p>
+        </div>
+    </div>
+
+    <!-- Date Range Filter -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-4">
+                    <label for="start_date" class="form-label">Start Date</label>
+                    <input type="date" class="form-control" id="start_date" name="start_date" value="{{ start_date }}">
+                </div>
+                <div class="col-md-4">
+                    <label for="end_date" class="form-label">End Date</label>
+                    <input type="date" class="form-control" id="end_date" name="end_date" value="{{ end_date }}">
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary">Generate Report</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Status Summary -->
+    {% if status_counts %}
+    <div class="row mb-4">
+        {% for status, count in status_counts %}
+        <div class="col-md-3 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h4 class="card-title">{{ count }}</h4>
+                    <p class="card-text">{{ status.title() }} Visitors</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Visitors Table -->
+    {% if visitors %}
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h6 class="mb-0">Visitor Records ({{ visitors|length }} entries)</h6>
+            <button class="btn btn-outline-success btn-sm" onclick="exportToCSV()">
+                <i class="bi bi-download me-1"></i>Export CSV
+            </button>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-sm" id="visitorsTable">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Phone</th>
+                            <th>Email</th>
+                            <th>Purpose</th>
+                            <th>Authority</th>
+                            <th>Entry Time</th>
+                            <th>Exit Time</th>
+                            <th>Status</th>
+                            <th>Duration</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for visitor in visitors %}
+                        <tr>
+                            <td>{{ visitor.name }}</td>
+                            <td>{{ visitor.phone }}</td>
+                            <td>{{ visitor.email or 'N/A' }}</td>
+                            <td>{{ visitor.purpose[:30] }}{% if visitor.purpose|length > 30 %}...{% endif %}</td>
+                            <td>{{ visitor.authority.name if visitor.authority else 'N/A' }}</td>
+                            <td>{{ visitor.entry_time.strftime('%Y-%m-%d %H:%M') if visitor.entry_time else 'N/A' }}</td>
+                            <td>{{ visitor.exit_time.strftime('%Y-%m-%d %H:%M') if visitor.exit_time else 'Still inside' }}</td>
+                            <td>
+                                <span class="badge bg-{{ 'success' if visitor.status == 'approved' else 'warning' if visitor.status == 'pending' else 'danger' if visitor.status == 'rejected' else 'secondary' }}">
+                                    {{ visitor.status.title() }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if visitor.exit_time and visitor.entry_time %}
+                                    {% set duration = visitor.exit_time - visitor.entry_time %}
+                                    {{ duration.total_seconds() // 3600 }}h {{ (duration.total_seconds() % 3600) // 60 }}m
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <i class="bi bi-file-earmark-bar-graph fs-1 text-muted"></i>
+        <h4 class="mt-3 text-muted">No data for selected period</h4>
+        <p class="text-muted">Try adjusting the date range.</p>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function exportToCSV() {
+    const table = document.getElementById('visitorsTable');
+    const rows = table.querySelectorAll('tr');
+    let csv = [];
+    
+    for (let i = 0; i < rows.length; i++) {
+        const row = [], cols = rows[i].querySelectorAll('td, th');
+        
+        for (let j = 0; j < cols.length; j++) {
+            let cellText = cols[j].innerText;
+            // Escape quotes and wrap in quotes if contains comma
+            if (cellText.includes(',') || cellText.includes('"')) {
+                cellText = '"' + cellText.replace(/"/g, '""') + '"';
+            }
+            row.push(cellText);
+        }
+        csv.push(row.join(','));
+    }
+    
+    const csvFile = new Blob([csv.join('\n')], { type: 'text/csv' });
+    const downloadLink = document.createElement('a');
+    downloadLink.download = 'visitor_report_{{ start_date }}_to_{{ end_date }}.csv';
+    downloadLink.href = window.URL.createObjectURL(csvFile);
+    downloadLink.style.display = 'none';
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+}
+</script>
+{% endblock %}

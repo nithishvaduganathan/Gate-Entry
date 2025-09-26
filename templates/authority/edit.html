@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Authority - SINCET Gate Entry System{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 500px;">
+    <div class="d-flex align-items-center mb-4">
+        <a href="{{ url_for('authority.list') }}" class="btn btn-outline-secondary me-3">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div>
+            <h1 class="h4 fw-bold mb-0">Edit Authority</h1>
+            <p class="text-muted mb-0">Update authority details</p>
+        </div>
+    </div>
+
+    <form method="POST">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-person-badge me-2"></i>Authority Details</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="name" class="form-label">Full Name *</label>
+                    <input type="text" class="form-control" id="name" name="name" 
+                           value="{{ authority.name }}" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="designation" class="form-label">Designation *</label>
+                    <select class="form-select" id="designation" name="designation" required>
+                        <option value="">Select Designation</option>
+                        <option value="Principal" {% if authority.designation == 'Principal' %}selected{% endif %}>Principal</option>
+                        <option value="HOD" {% if authority.designation == 'HOD' %}selected{% endif %}>HOD</option>
+                        <option value="Staff" {% if authority.designation == 'Staff' %}selected{% endif %}>Staff</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="department" class="form-label">Department</label>
+                    <input type="text" class="form-control" id="department" name="department" 
+                           value="{{ authority.department or '' }}" placeholder="e.g., Computer Science, Electronics">
+                </div>
+
+                <div class="mb-3">
+                    <label for="phone" class="form-label">Phone Number</label>
+                    <input type="tel" class="form-control" id="phone" name="phone" 
+                           value="{{ authority.phone or '' }}" placeholder="+91-XXXXXXXXXX">
+                </div>
+
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email Address</label>
+                    <input type="email" class="form-control" id="email" name="email" 
+                           value="{{ authority.email or '' }}" placeholder="authority@college.edu">
+                </div>
+
+                <div class="mb-3">
+                    <label for="role" class="form-label">Role</label>
+                    <select class="form-select" id="role" name="role">
+                        <option value="staff" {% if authority.role == 'staff' %}selected{% endif %}>Staff</option>
+                        <option value="hod" {% if authority.role == 'hod' %}selected{% endif %}>HOD</option>
+                        <option value="admin" {% if authority.role == 'admin' %}selected{% endif %}>Admin</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="is_active" name="is_active" 
+                               {% if authority.is_active %}checked{% endif %}>
+                        <label for="is_active" class="form-check-label">Active</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100 btn-lg">Update Authority</button>
+    </form>
+</div>
+{% endblock %}

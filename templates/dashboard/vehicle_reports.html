@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block title %}Vehicle Reports - SINCET Gate Entry System{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex align-items-center mb-4">
+        <a href="{{ url_for('dashboard.reports') }}" class="btn btn-outline-secondary me-3">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div>
+            <h1 class="h4 fw-bold mb-0">Vehicle Reports</h1>
+            <p class="text-muted mb-0">Detailed vehicle analytics</p>
+        </div>
+    </div>
+
+    <!-- Date Range Filter -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <input type="hidden" name="type" value="vehicles">
+                <div class="col-md-4">
+                    <label for="start_date" class="form-label">Start Date</label>
+                    <input type="date" class="form-control" id="start_date" name="start_date" value="{{ start_date }}">
+                </div>
+                <div class="col-md-4">
+                    <label for="end_date" class="form-label">End Date</label>
+                    <input type="date" class="form-control" id="end_date" name="end_date" value="{{ end_date }}">
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-success">Generate Report</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Type Summary -->
+    {% if type_counts %}
+    <div class="row mb-4">
+        {% for vehicle_type, count in type_counts %}
+        <div class="col-md-6 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h4 class="card-title">{{ count }}</h4>
+                    <p class="card-text">{{ vehicle_type.title() }}s</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Vehicles Table -->
+    {% if vehicles %}
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h6 class="mb-0">Vehicle Records ({{ vehicles|length }} entries)</h6>
+            <button class="btn btn-outline-success btn-sm" onclick="exportToCSV()">
+                <i class="bi bi-download me-1"></i>Export CSV
+            </button>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-sm" id="vehiclesTable">
+                    <thead>
+                        <tr>
+                            <th>Vehicle Number</th>
+                            <th>Type</th>
+                            <th>Driver Name</th>
+                            <th>Driver Phone</th>
+                            <th>Route</th>
+                            <th>Passengers</th>
+                            <th>Entry Time</th>
+                            <th>Exit Time</th>
+                            <th>Status</th>
+                            <th>Duration</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for vehicle in vehicles %}
+                        <tr>
+                            <td>{{ vehicle.bus_number }}</td>
+                            <td>
+                                <span class="badge bg-{{ 'primary' if vehicle.vehicle_type == 'bus' else 'secondary' }}">
+                                    {{ vehicle.vehicle_type.title() }}
+                                </span>
+                            </td>
+                            <td>{{ vehicle.driver_name or 'N/A' }}</td>
+                            <td>{{ vehicle.driver_phone or 'N/A' }}</td>
+                            <td>{{ vehicle.route or 'N/A' }}</td>
+                            <td>{{ vehicle.passenger_count or 'N/A' }}</td>
+                            <td>{{ vehicle.entry_time.strftime('%Y-%m-%d %H:%M') if vehicle.entry_time else 'N/A' }}</td>
+                            <td>{{ vehicle.exit_time.strftime('%Y-%m-%d %H:%M') if vehicle.exit_time else 'Still inside' }}</td>
+                            <td>
+                                <span class="badge bg-{{ 'success' if vehicle.status == 'entered' else 'secondary' }}">
+                                    {{ vehicle.status.title() }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if vehicle.exit_time and vehicle.entry_time %}
+                                    {% set duration = vehicle.exit_time - vehicle.entry_time %}
+                                    {{ duration.total_seconds() // 3600 }}h {{ (duration.total_seconds() % 3600) // 60 }}m
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <i class="bi bi-file-earmark-bar-graph fs-1 text-muted"></i>
+        <h4 class="mt-3 text-muted">No data for selected period</h4>
+        <p class="text-muted">Try adjusting the date range.</p>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function exportToCSV() {
+    const table = document.getElementById('vehiclesTable');
+    const rows = table.querySelectorAll('tr');
+    let csv = [];
+    
+    for (let i = 0; i < rows.length; i++) {
+        const row = [], cols = rows[i].querySelectorAll('td, th');
+        
+        for (let j = 0; j < cols.length; j++) {
+            let cellText = cols[j].innerText;
+            // Escape quotes and wrap in quotes if contains comma
+            if (cellText.includes(',') || cellText.includes('"')) {
+                cellText = '"' + cellText.replace(/"/g, '""') + '"';
+            }
+            row.push(cellText);
+        }
+        csv.push(row.join(','));
+    }
+    
+    const csvFile = new Blob([csv.join('\n')], { type: 'text/csv' });
+    const downloadLink = document.createElement('a');
+    downloadLink.download = 'vehicle_report_{{ start_date }}_to_{{ end_date }}.csv';
+    downloadLink.href = window.URL.createObjectURL(csvFile);
+    downloadLink.style.display = 'none';
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+}
+</script>
+{% endblock %}

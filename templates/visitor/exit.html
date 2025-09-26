@@ -22,21 +22,35 @@
         <div class="card-body">
             {% for visitor in visitors %}
             <div class="d-flex justify-content-between align-items-center border-bottom py-3">
-                <div>
-                    <h6 class="mb-1">{{ visitor.name }}</h6>
-                    <p class="text-muted mb-1">{{ visitor.phone }}</p>
-                    <small class="text-muted">Entered: {{ visitor.entry_time.strftime('%Y-%m-%d %H:%M') }}</small>
-                    <br>
-                    <span class="badge bg-{{ 'success' if visitor.status == 'approved' else 'warning' }}">
-                        {{ visitor.status.title() }}
-                    </span>
+                <div class="d-flex align-items-center">
+                    {% if visitor.photo_url %}
+                    <img src="{{ visitor.photo_url }}" alt="Visitor photo" class="rounded me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                    {% else %}
+                    <div class="bg-light rounded me-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                        <i class="bi bi-person text-muted"></i>
+                    </div>
+                    {% endif %}
+                    <div>
+                        <h6 class="mb-1">{{ visitor.name }}</h6>
+                        <p class="text-muted mb-1">{{ visitor.phone }}</p>
+                        <small class="text-muted">Entered: {{ visitor.entry_time.strftime('%Y-%m-%d %H:%M') }}</small>
+                        <br>
+                        <span class="badge bg-{{ 'success' if visitor.status == 'approved' else 'warning' }}">
+                            {{ visitor.status.title() }}
+                        </span>
+                    </div>
                 </div>
-                <form method="POST" class="d-inline">
-                    <input type="hidden" name="visitor_id" value="{{ visitor.id }}">
-                    <button type="submit" class="btn btn-outline-danger btn-sm">
-                        <i class="bi bi-box-arrow-right me-1"></i>Exit
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#exitPhotoModal" data-visitor-id="{{ visitor.id }}" data-visitor-name="{{ visitor.name }}">
+                        <i class="bi bi-camera me-1"></i>Photo
                     </button>
-                </form>
+                    <form method="POST" class="d-inline">
+                        <input type="hidden" name="visitor_id" value="{{ visitor.id }}">
+                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                            <i class="bi bi-box-arrow-right me-1"></i>Exit
+                        </button>
+                    </form>
+                </div>
             </div>
             {% endfor %}
         </div>
@@ -50,4 +64,172 @@
     </div>
     {% endif %}
 </div>
+
+<!-- Exit Photo Modal -->
+<div class="modal fade" id="exitPhotoModal" tabindex="-1" aria-labelledby="exitPhotoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exitPhotoModalLabel">
+                    <i class="bi bi-camera me-2"></i>Capture Exit Photo
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <p class="text-muted mb-3">Capture exit photo for: <span id="exitVisitorName"></span></p>
+                
+                <div class="camera-container mb-3">
+                    <video id="exitCameraPreview" autoplay playsinline class="camera-preview"></video>
+                    <canvas id="exitPhotoCanvas" style="display: none;"></canvas>
+                </div>
+                
+                <div class="d-flex justify-content-center gap-3">
+                    <button type="button" class="btn btn-success" id="captureExitBtn">
+                        <i class="bi bi-camera me-2"></i>Capture Photo
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-2"></i>Cancel
+                    </button>
+                </div>
+                
+                <div class="mt-3">
+                    <small class="text-muted">Position the visitor in the camera frame and click capture</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include Speech Modal for Notes -->
+{% include 'components/speech_modal.html' %}
+
+<script>
+let exitVideoStream = null;
+let currentVisitorId = null;
+
+// Initialize exit photo functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const exitPhotoModal = document.getElementById('exitPhotoModal');
+    const exitVideo = document.getElementById('exitCameraPreview');
+    const exitCanvas = document.getElementById('exitPhotoCanvas');
+    const captureExitBtn = document.getElementById('captureExitBtn');
+    
+    if (!exitPhotoModal) return;
+
+    // Handle modal opening
+    exitPhotoModal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        currentVisitorId = button.getAttribute('data-visitor-id');
+        const visitorName = button.getAttribute('data-visitor-name');
+        document.getElementById('exitVisitorName').textContent = visitorName;
+    });
+
+    // Start camera when modal opens
+    exitPhotoModal.addEventListener('shown.bs.modal', function() {
+        startExitCamera();
+    });
+
+    // Stop camera when modal closes
+    exitPhotoModal.addEventListener('hidden.bs.modal', function() {
+        stopExitCamera();
+    });
+
+    // Capture photo
+    if (captureExitBtn) {
+        captureExitBtn.addEventListener('click', function() {
+            captureExitPhoto();
+        });
+    }
+});
+
+function startExitCamera() {
+    const video = document.getElementById('exitCameraPreview');
+    
+    navigator.mediaDevices.getUserMedia({ 
+        video: { 
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+            facingMode: 'user'
+        } 
+    })
+    .then(function(stream) {
+        exitVideoStream = stream;
+        video.srcObject = stream;
+    })
+    .catch(function(err) {
+        console.error('Error accessing camera:', err);
+        alert('Could not access camera. Please check permissions.');
+    });
+}
+
+function stopExitCamera() {
+    if (exitVideoStream) {
+        exitVideoStream.getTracks().forEach(track => {
+            track.stop();
+        });
+        exitVideoStream = null;
+    }
+}
+
+function captureExitPhoto() {
+    const video = document.getElementById('exitCameraPreview');
+    const canvas = document.getElementById('exitPhotoCanvas');
+    
+    if (!video.videoWidth || !video.videoHeight) {
+        alert('Camera not ready. Please wait a moment and try again.');
+        return;
+    }
+
+    // Set canvas dimensions to match video
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    
+    // Draw video frame to canvas
+    const context = canvas.getContext('2d');
+    context.drawImage(video, 0, 0);
+    
+    // Convert to blob and send to server
+    canvas.toBlob(function(blob) {
+        if (!blob) {
+            alert('Failed to capture photo. Please try again.');
+            return;
+        }
+
+        // Upload exit photo
+        uploadExitPhoto(blob, currentVisitorId);
+        
+    }, 'image/jpeg', 0.8);
+}
+
+function uploadExitPhoto(photoBlob, visitorId) {
+    const formData = new FormData();
+    formData.append('exit_photo', photoBlob, 'exit_photo.jpg');
+    formData.append('visitor_id', visitorId);
+    
+    fetch('/visitor/upload-exit-photo', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Exit photo captured successfully!');
+            // Hide modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('exitPhotoModal'));
+            modal.hide();
+            // Reload page to show updated photo
+            window.location.reload();
+        } else {
+            alert('Error saving photo: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error uploading photo:', error);
+        alert('Error uploading photo. Please try again.');
+    })
+    .finally(() => {
+        stopExitCamera();
+    });
+}
+</script>
 {% endblock %}

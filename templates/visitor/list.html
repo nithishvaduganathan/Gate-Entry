@@ -58,8 +58,19 @@
                         {% for visitor in visitors.items %}
                         <tr>
                             <td>
-                                <strong>{{ visitor.name }}</strong>
-                                {% if visitor.email %}<br><small class="text-muted">{{ visitor.email }}</small>{% endif %}
+                                <div class="d-flex align-items-center">
+                                    {% if visitor.photo_url %}
+                                    <img src="{{ visitor.photo_url }}" alt="Visitor photo" class="rounded me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                                    {% else %}
+                                    <div class="bg-light rounded me-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                        <i class="bi bi-person text-muted"></i>
+                                    </div>
+                                    {% endif %}
+                                    <div>
+                                        <strong>{{ visitor.name }}</strong>
+                                        {% if visitor.email %}<br><small class="text-muted">{{ visitor.email }}</small>{% endif %}
+                                    </div>
+                                </div>
                             </td>
                             <td>{{ visitor.phone }}</td>
                             <td>{{ visitor.purpose[:50] }}{% if visitor.purpose|length > 50 %}...{% endif %}</td>

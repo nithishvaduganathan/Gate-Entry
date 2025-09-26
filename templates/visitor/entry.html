@@ -20,9 +20,35 @@
             <div class="card-header">
                 <h6 class="mb-0"><i class="bi bi-camera me-2"></i>Visitor Photo</h6>
             </div>
-            <div class="card-body text-center">
-                <input type="file" id="photo" name="photo" accept="image/*" class="form-control mb-3">
-                <small class="text-muted">Upload visitor photo (optional)</small>
+            <div class="card-body">
+                <div id="photoPreviewContainer" style="display: none;" class="text-center mb-3">
+                    <img id="photoPreview" src="" alt="Captured photo" class="img-fluid rounded" style="max-height: 200px;">
+                    <div class="mt-2">
+                        <button type="button" class="btn btn-outline-danger btn-sm" id="removePhotoBtn">
+                            <i class="bi bi-trash me-1"></i>Remove Photo
+                        </button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#cameraModal">
+                            <i class="bi bi-camera me-1"></i>Retake Photo
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="photoActionsContainer" class="text-center">
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <button type="button" class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#cameraModal">
+                                <i class="bi bi-camera me-2"></i>Capture Photo
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <label for="photo" class="btn btn-outline-primary w-100">
+                                <i class="bi bi-upload me-2"></i>Upload Photo
+                            </label>
+                            <input type="file" id="photo" name="photo" accept="image/*" class="d-none">
+                        </div>
+                    </div>
+                    <small class="text-muted d-block mt-2">Capture or upload visitor photo (optional)</small>
+                </div>
             </div>
         </div>
 
@@ -32,6 +58,13 @@
                 <h6 class="mb-0"><i class="bi bi-person me-2"></i>Visitor Details</h6>
             </div>
             <div class="card-body">
+                <!-- Voice Input Toggle -->
+                <div class="text-end mb-3">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#speechModal">
+                        <i class="bi bi-mic me-1"></i>Voice Input
+                    </button>
+                </div>
+
                 <div class="mb-3">
                     <label for="name" class="form-label">Full Name *</label>
                     <input type="text" class="form-control" id="name" name="name" required>
@@ -92,6 +125,12 @@
     </form>
 </div>
 
+<!-- Include Camera Modal -->
+{% include 'components/camera_modal.html' %}
+
+<!-- Include Speech Modal -->
+{% include 'components/speech_modal.html' %}
+
 <script>
     // Update current time
     function updateTime() {
@@ -99,5 +138,29 @@
     }
     updateTime();
     setInterval(updateTime, 1000);
+
+    // Photo upload handling
+    document.getElementById('photo').addEventListener('change', function(e) {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                document.getElementById('photoPreview').src = e.target.result;
+                document.getElementById('photoPreviewContainer').style.display = 'block';
+                document.getElementById('photoActionsContainer').style.display = 'none';
+            };
+            
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Remove photo
+    document.getElementById('removePhotoBtn').addEventListener('click', function() {
+        document.getElementById('photo').value = '';
+        document.getElementById('photoPreview').src = '';
+        document.getElementById('photoPreviewContainer').style.display = 'none';
+        document.getElementById('photoActionsContainer').style.display = 'block';
+    });
 </script>
 {% endblock %}

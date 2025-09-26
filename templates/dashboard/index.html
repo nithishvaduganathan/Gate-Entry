@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - SINCET Gate Entry System{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex align-items-center mb-4">
+        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary me-3">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div>
+            <h1 class="h4 fw-bold mb-0">Dashboard</h1>
+            <p class="text-muted mb-0">System overview and statistics</p>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-6 col-lg-3 mb-3">
+            <div class="card text-center bg-primary text-white">
+                <div class="card-body">
+                    <i class="bi bi-person-plus fs-1 mb-2"></i>
+                    <h5 class="card-title" id="today-visitors">{{ stats.today_visitors }}</h5>
+                    <p class="card-text">Today's Visitors</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3 mb-3">
+            <div class="card text-center bg-warning text-dark">
+                <div class="card-body">
+                    <i class="bi bi-clock fs-1 mb-2"></i>
+                    <h5 class="card-title" id="pending-visitors">{{ stats.pending_visitors }}</h5>
+                    <p class="card-text">Pending Approvals</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3 mb-3">
+            <div class="card text-center bg-success text-white">
+                <div class="card-body">
+                    <i class="bi bi-people fs-1 mb-2"></i>
+                    <h5 class="card-title" id="active-visitors">{{ stats.active_visitors }}</h5>
+                    <p class="card-text">Active Visitors</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3 mb-3">
+            <div class="card text-center bg-info text-white">
+                <div class="card-body">
+                    <i class="bi bi-truck fs-1 mb-2"></i>
+                    <h5 class="card-title" id="today-vehicles">{{ stats.today_vehicles }}</h5>
+                    <p class="card-text">Today's Vehicles</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">Recent Visitors</h6>
+                    <a href="{{ url_for('visitor.list') }}" class="btn btn-outline-primary btn-sm">View All</a>
+                </div>
+                <div class="card-body">
+                    {% if recent_visitors %}
+                    {% for visitor in recent_visitors %}
+                    <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                        <div>
+                            <h6 class="mb-0">{{ visitor.name }}</h6>
+                            <small class="text-muted">{{ visitor.purpose[:30] }}{% if visitor.purpose|length > 30 %}...{% endif %}</small>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-{{ 'success' if visitor.status == 'approved' else 'warning' if visitor.status == 'pending' else 'danger' }}">
+                                {{ visitor.status.title() }}
+                            </span>
+                            <br>
+                            <small class="text-muted">{{ visitor.entry_time.strftime('%H:%M') if visitor.entry_time else '' }}</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <p class="text-muted text-center">No recent visitors</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">Recent Vehicles</h6>
+                    <a href="{{ url_for('vehicle.list') }}" class="btn btn-outline-success btn-sm">View All</a>
+                </div>
+                <div class="card-body">
+                    {% if recent_vehicles %}
+                    {% for vehicle in recent_vehicles %}
+                    <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                        <div>
+                            <h6 class="mb-0">{{ vehicle.bus_number }}</h6>
+                            <small class="text-muted">{{ vehicle.driver_name or 'Unknown Driver' }}</small>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-{{ 'primary' if vehicle.vehicle_type == 'bus' else 'secondary' }}">
+                                {{ vehicle.vehicle_type.title() }}
+                            </span>
+                            <br>
+                            <small class="text-muted">{{ vehicle.entry_time.strftime('%H:%M') if vehicle.entry_time else '' }}</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <p class="text-muted text-center">No recent vehicles</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Weekly Activity Chart -->
+    {% if week_data %}
+    <div class="card">
+        <div class="card-header">
+            <h6 class="mb-0">Weekly Activity</h6>
+        </div>
+        <div class="card-body">
+            <canvas id="weeklyChart" height="100"></canvas>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Auto-refresh indicator -->
+    <div class="text-center mt-3">
+        <small class="text-muted" id="last-updated">Last updated: {{ moment().format('HH:mm:ss') }}</small>
+    </div>
+</div>
+
+{% if week_data %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Weekly activity chart
+    const ctx = document.getElementById('weeklyChart').getContext('2d');
+    const weekData = {{ week_data | tojson }};
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: weekData.map(d => d.date),
+            datasets: [{
+                label: 'Visitors',
+                data: weekData.map(d => d.visitors),
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                tension: 0.1
+            }, {
+                label: 'Vehicles',
+                data: weekData.map(d => d.vehicles),
+                borderColor: 'rgb(255, 99, 132)',
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Daily Entry Statistics'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+{% endif %}
+{% endblock %}

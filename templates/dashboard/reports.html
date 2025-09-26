@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}Reports - SINCET Gate Entry System{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex align-items-center mb-4">
+        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary me-3">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div>
+            <h1 class="h4 fw-bold mb-0">Reports & Analytics</h1>
+            <p class="text-muted mb-0">Generate and view system reports</p>
+        </div>
+    </div>
+
+    <!-- Quick Report Cards -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0"><i class="bi bi-people me-2"></i>Visitor Reports</h6>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Generate detailed reports for visitor entries, exits, and approval statistics.</p>
+                    
+                    <div class="mb-3">
+                        <h6 class="text-muted">Quick Reports:</h6>
+                        <div class="d-grid gap-2">
+                            <a href="{{ url_for('dashboard.reports', type='visitors', start_date=(datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d'), end_date=datetime.now().strftime('%Y-%m-%d')) }}" 
+                               class="btn btn-outline-primary btn-sm">Today's Visitors</a>
+                            <a href="{{ url_for('dashboard.reports', type='visitors', start_date=(datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d'), end_date=datetime.now().strftime('%Y-%m-%d')) }}" 
+                               class="btn btn-outline-primary btn-sm">This Week</a>
+                            <a href="{{ url_for('dashboard.reports', type='visitors', start_date=(datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d'), end_date=datetime.now().strftime('%Y-%m-%d')) }}" 
+                               class="btn btn-outline-primary btn-sm">This Month</a>
+                        </div>
+                    </div>
+                    
+                    <a href="{{ url_for('dashboard.reports', type='visitors') }}" class="btn btn-primary w-100">
+                        Generate Custom Report
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                    <h6 class="mb-0"><i class="bi bi-truck me-2"></i>Vehicle Reports</h6>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Generate reports for vehicle and bus entries, tracking patterns and usage.</p>
+                    
+                    <div class="mb-3">
+                        <h6 class="text-muted">Quick Reports:</h6>
+                        <div class="d-grid gap-2">
+                            <a href="{{ url_for('dashboard.reports', type='vehicles', start_date=(datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d'), end_date=datetime.now().strftime('%Y-%m-%d')) }}" 
+                               class="btn btn-outline-success btn-sm">Today's Vehicles</a>
+                            <a href="{{ url_for('dashboard.reports', type='vehicles', start_date=(datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d'), end_date=datetime.now().strftime('%Y-%m-%d')) }}" 
+                               class="btn btn-outline-success btn-sm">This Week</a>
+                            <a href="{{ url_for('dashboard.reports', type='vehicles', start_date=(datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d'), end_date=datetime.now().strftime('%Y-%m-%d')) }}" 
+                               class="btn btn-outline-success btn-sm">This Month</a>
+                        </div>
+                    </div>
+                    
+                    <a href="{{ url_for('dashboard.reports', type='vehicles') }}" class="btn btn-success w-100">
+                        Generate Custom Report
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analytics Overview -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-graph-up me-2"></i>System Analytics</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3 mb-3">
+                            <div class="border-end">
+                                <h4 class="text-primary">{{ total_visitors or 0 }}</h4>
+                                <small class="text-muted">Total Visitors</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="border-end">
+                                <h4 class="text-success">{{ total_vehicles or 0 }}</h4>
+                                <small class="text-muted">Total Vehicles</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="border-end">
+                                <h4 class="text-warning">{{ pending_approvals or 0 }}</h4>
+                                <small class="text-muted">Pending Approvals</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <h4 class="text-info">{{ active_authorities or 0 }}</h4>
+                            <small class="text-muted">Active Authorities</small>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mt-3">
+                        <a href="{{ url_for('dashboard.index') }}" class="btn btn-outline-primary">
+                            View Full Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

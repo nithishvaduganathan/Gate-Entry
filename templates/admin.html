@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Panel - SINCET Gate Entry System{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex align-items-center mb-4">
+        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary me-3">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div>
+            <h1 class="h4 fw-bold mb-0">Admin Panel</h1>
+            <p class="text-muted mb-0">System administration and settings</p>
+        </div>
+    </div>
+
+    <!-- Admin Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-md-6 col-lg-3 mb-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <i class="bi bi-people fs-1 text-primary mb-3"></i>
+                    <h6 class="card-title">Manage Authorities</h6>
+                    <p class="card-text">Add, edit, and manage authority accounts.</p>
+                    <a href="{{ url_for('authority.list') }}" class="btn btn-primary">Manage</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3 mb-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <i class="bi bi-bell fs-1 text-warning mb-3"></i>
+                    <h6 class="card-title">Notifications</h6>
+                    <p class="card-text">View and manage system notifications.</p>
+                    <a href="{{ url_for('authority.notifications') }}" class="btn btn-warning">View</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3 mb-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <i class="bi bi-graph-up fs-1 text-success mb-3"></i>
+                    <h6 class="card-title">Reports</h6>
+                    <p class="card-text">Generate and view system reports.</p>
+                    <a href="{{ url_for('dashboard.reports') }}" class="btn btn-success">Reports</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3 mb-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <i class="bi bi-gear fs-1 text-secondary mb-3"></i>
+                    <h6 class="card-title">System Settings</h6>
+                    <p class="card-text">Configure system preferences.</p>
+                    <button class="btn btn-secondary" disabled>Coming Soon</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Overview -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-speedometer2 me-2"></i>System Overview</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-2 mb-3">
+                            <h4 class="text-primary">{{ total_users or 0 }}</h4>
+                            <small class="text-muted">Total Users</small>
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <h4 class="text-info">{{ total_authorities or 0 }}</h4>
+                            <small class="text-muted">Authorities</small>
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <h4 class="text-success">{{ total_visitors or 0 }}</h4>
+                            <small class="text-muted">Total Visitors</small>
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <h4 class="text-warning">{{ total_vehicles or 0 }}</h4>
+                            <small class="text-muted">Total Vehicles</small>
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <h4 class="text-danger">{{ pending_approvals or 0 }}</h4>
+                            <small class="text-muted">Pending</small>
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <h4 class="text-secondary">{{ active_today or 0 }}</h4>
+                            <small class="text-muted">Today's Activity</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">Recent User Activity</h6>
+                </div>
+                <div class="card-body">
+                    {% if recent_users %}
+                    {% for user in recent_users %}
+                    <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                        <div>
+                            <h6 class="mb-0">{{ user.username }}</h6>
+                            <small class="text-muted">Role: {{ user.role.title() }}</small>
+                        </div>
+                        <span class="badge bg-{{ 'success' if user.is_active else 'secondary' }}">
+                            {{ 'Active' if user.is_active else 'Inactive' }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <p class="text-muted text-center">No recent user activity</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">System Status</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>Database</span>
+                            <span class="badge bg-success">Online</span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>File Storage</span>
+                            <span class="badge bg-success">Online</span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>Google Sheets Integration</span>
+                            <span class="badge bg-{{ 'success' if sheets_enabled else 'secondary' }}">
+                                {{ 'Enabled' if sheets_enabled else 'Disabled' }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>Notifications</span>
+                            <span class="badge bg-success">Active</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">Quick Actions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-2">
+                            <a href="{{ url_for('authority.add') }}" class="btn btn-outline-primary w-100">
+                                <i class="bi bi-person-plus me-2"></i>Add Authority
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <a href="{{ url_for('authority.approvals') }}" class="btn btn-outline-warning w-100">
+                                <i class="bi bi-clock me-2"></i>Review Approvals
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <a href="{{ url_for('dashboard.reports') }}" class="btn btn-outline-success w-100">
+                                <i class="bi bi-file-earmark-text me-2"></i>Export Reports
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

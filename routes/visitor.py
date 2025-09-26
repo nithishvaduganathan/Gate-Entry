@@ -32,8 +32,10 @@ def entry():
             photo_url = None
             if 'photo' in request.files:
                 file = request.files['photo']
-                if file and allowed_file(file.filename):
+                if file and file.filename and allowed_file(file.filename):
                     photo_url = save_uploaded_file(file, 'visitors')
+                    if not photo_url:
+                        flash('Failed to save photo. Please try again.', 'warning')
             
             # Determine status based on authority selection
             requires_permission = bool(authority_id)
@@ -90,6 +92,7 @@ def entry():
             return redirect(url_for('visitor.entry'))
             
         except Exception as e:
+            db.session.rollback()
             flash(f'Error registering visitor: {str(e)}', 'error')
     
     # Get authorities for dropdown
@@ -145,3 +148,39 @@ def list():
     )
     
     return render_template('visitor/list.html', visitors=visitors, search=search, status_filter=status_filter)
+
+@visitor_bp.route('/upload-exit-photo', methods=['POST'])
+@login_required
+def upload_exit_photo():
+    try:
+        visitor_id = request.form.get('visitor_id')
+        if not visitor_id:
+            return jsonify({'success': False, 'error': 'Visitor ID is required'})
+        
+        visitor = Visitor.query.get(visitor_id)
+        if not visitor:
+            return jsonify({'success': False, 'error': 'Visitor not found'})
+        
+        # Handle exit photo upload
+        exit_photo_url = None
+        if 'exit_photo' in request.files:
+            file = request.files['exit_photo']
+            if file and allowed_file(file.filename):
+                exit_photo_url = save_uploaded_file(file, 'visitors/exit')
+                
+                # Store exit photo URL in notes or create a separate field
+                if visitor.notes:
+                    visitor.notes += f"\n[Exit Photo: {exit_photo_url}]"
+                else:
+                    visitor.notes = f"[Exit Photo: {exit_photo_url}]"
+                
+                db.session.commit()
+                return jsonify({'success': True, 'photo_url': exit_photo_url})
+            else:
+                return jsonify({'success': False, 'error': 'Invalid file type'})
+        else:
+            return jsonify({'success': False, 'error': 'No photo provided'})
+            
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})

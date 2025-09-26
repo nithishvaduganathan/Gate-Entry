@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+
+{% block title %}All Entries - SINCET Gate Entry System{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex align-items-center mb-4">
+        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary me-3">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div>
+            <h1 class="h4 fw-bold mb-0">All Entries</h1>
+            <p class="text-muted mb-0">Combined view of all visitor and vehicle entries</p>
+        </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <ul class="nav nav-tabs mb-4" id="entriesTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" 
+                    type="button" role="tab" aria-controls="all" aria-selected="true">
+                All Entries
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="visitors-tab" data-bs-toggle="tab" data-bs-target="#visitors" 
+                    type="button" role="tab" aria-controls="visitors" aria-selected="false">
+                Visitors Only
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="vehicles-tab" data-bs-toggle="tab" data-bs-target="#vehicles" 
+                    type="button" role="tab" aria-controls="vehicles" aria-selected="false">
+                Vehicles Only
+            </button>
+        </li>
+    </ul>
+
+    <!-- Search and Filter -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <input type="text" class="form-control" id="searchInput" 
+                           placeholder="Search by name, phone, vehicle number...">
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" id="statusFilter">
+                        <option value="">All Status</option>
+                        <option value="pending">Pending</option>
+                        <option value="approved">Approved</option>
+                        <option value="entered">Active</option>
+                        <option value="exited">Exited</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <input type="date" class="form-control" id="dateFilter" value="{{ today }}">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="entriesTabContent">
+        <!-- All Entries Tab -->
+        <div class="tab-pane fade show active" id="all" role="tabpanel" aria-labelledby="all-tab">
+            <div class="row" id="allEntriesContainer">
+                <!-- Combined entries will be loaded here -->
+                <div class="col-12 text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Loading entries...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Visitors Tab -->
+        <div class="tab-pane fade" id="visitors" role="tabpanel" aria-labelledby="visitors-tab">
+            <div class="row" id="visitorsContainer">
+                <!-- Visitor entries will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Vehicles Tab -->
+        <div class="tab-pane fade" id="vehicles" role="tabpanel" aria-labelledby="vehicles-tab">
+            <div class="row" id="vehiclesContainer">
+                <!-- Vehicle entries will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Load More Button -->
+    <div class="text-center mt-4">
+        <button class="btn btn-outline-primary" id="loadMoreBtn" style="display: none;">
+            Load More Entries
+        </button>
+    </div>
+</div>
+
+<script>
+let currentPage = 1;
+let currentFilter = '';
+let currentSearch = '';
+let currentStatus = '';
+let currentDate = '{{ today }}';
+
+// Load entries when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    loadAllEntries();
+    
+    // Setup event listeners
+    document.getElementById('searchInput').addEventListener('input', function() {
+        currentSearch = this.value;
+        currentPage = 1;
+        loadCurrentTab();
+    });
+    
+    document.getElementById('statusFilter').addEventListener('change', function() {
+        currentStatus = this.value;
+        currentPage = 1;
+        loadCurrentTab();
+    });
+    
+    document.getElementById('dateFilter').addEventListener('change', function() {
+        currentDate = this.value;
+        currentPage = 1;
+        loadCurrentTab();
+    });
+    
+    // Tab switch handlers
+    document.getElementById('visitors-tab').addEventListener('click', function() {
+        currentFilter = 'visitors';
+        loadVisitors();
+    });
+    
+    document.getElementById('vehicles-tab').addEventListener('click', function() {
+        currentFilter = 'vehicles';
+        loadVehicles();
+    });
+    
+    document.getElementById('all-tab').addEventListener('click', function() {
+        currentFilter = '';
+        loadAllEntries();
+    });
+});
+
+function loadCurrentTab() {
+    if (currentFilter === 'visitors') {
+        loadVisitors();
+    } else if (currentFilter === 'vehicles') {
+        loadVehicles();
+    } else {
+        loadAllEntries();
+    }
+}
+
+function loadAllEntries() {
+    const container = document.getElementById('allEntriesContainer');
+    container.innerHTML = '<div class="col-12 text-center py-3"><div class="spinner-border text-primary"></div></div>';
+    
+    // Load both visitors and vehicles
+    Promise.all([
+        fetch(`/api/visitors?search=${currentSearch}&status=${currentStatus}&page=${currentPage}`),
+        fetch(`/api/vehicles?search=${currentSearch}&page=${currentPage}`)
+    ])
+    .then(responses => Promise.all(responses.map(r => r.json())))
+    .then(([visitorsData, vehiclesData]) => {
+        const combined = [];
+        
+        // Add visitors with type indicator
+        visitorsData.visitors.forEach(visitor => {
+            combined.push({...visitor, type: 'visitor'});
+        });
+        
+        // Add vehicles with type indicator
+        vehiclesData.vehicles.forEach(vehicle => {
+            combined.push({...vehicle, type: 'vehicle'});
+        });
+        
+        // Sort by entry time (most recent first)
+        combined.sort((a, b) => new Date(b.entry_time || 0) - new Date(a.entry_time || 0));
+        
+        displayEntries(combined, container);
+    })
+    .catch(error => {
+        console.error('Error loading entries:', error);
+        container.innerHTML = '<div class="col-12 text-center py-3 text-danger">Error loading entries</div>';
+    });
+}
+
+function loadVisitors() {
+    const container = document.getElementById('visitorsContainer');
+    container.innerHTML = '<div class="col-12 text-center py-3"><div class="spinner-border text-primary"></div></div>';
+    
+    fetch(`/api/visitors?search=${currentSearch}&status=${currentStatus}&page=${currentPage}`)
+    .then(response => response.json())
+    .then(data => {
+        const visitors = data.visitors.map(visitor => ({...visitor, type: 'visitor'}));
+        displayEntries(visitors, container);
+    })
+    .catch(error => {
+        console.error('Error loading visitors:', error);
+        container.innerHTML = '<div class="col-12 text-center py-3 text-danger">Error loading visitors</div>';
+    });
+}
+
+function loadVehicles() {
+    const container = document.getElementById('vehiclesContainer');
+    container.innerHTML = '<div class="col-12 text-center py-3"><div class="spinner-border text-primary"></div></div>';
+    
+    fetch(`/api/vehicles?search=${currentSearch}&page=${currentPage}`)
+    .then(response => response.json())
+    .then(data => {
+        const vehicles = data.vehicles.map(vehicle => ({...vehicle, type: 'vehicle'}));
+        displayEntries(vehicles, container);
+    })
+    .catch(error => {
+        console.error('Error loading vehicles:', error);
+        container.innerHTML = '<div class="col-12 text-center py-3 text-danger">Error loading vehicles</div>';
+    });
+}
+
+function displayEntries(entries, container) {
+    if (entries.length === 0) {
+        container.innerHTML = `
+            <div class="col-12 text-center py-5">
+                <i class="bi bi-inbox fs-1 text-muted"></i>
+                <h4 class="mt-3 text-muted">No entries found</h4>
+                <p class="text-muted">Try adjusting your search criteria.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    const html = entries.map(entry => {
+        if (entry.type === 'visitor') {
+            return createVisitorCard(entry);
+        } else {
+            return createVehicleCard(entry);
+        }
+    }).join('');
+    
+    container.innerHTML = html;
+}
+
+function createVisitorCard(visitor) {
+    const statusClass = visitor.status === 'approved' ? 'success' : 
+                       visitor.status === 'pending' ? 'warning' : 
+                       visitor.status === 'rejected' ? 'danger' : 'secondary';
+    
+    return `
+        <div class="col-md-6 col-lg-4 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h6 class="card-title mb-0">${visitor.name}</h6>
+                        <span class="badge bg-primary">Visitor</span>
+                    </div>
+                    <p class="text-muted mb-1"><i class="bi bi-phone me-1"></i>${visitor.phone}</p>
+                    <p class="text-muted mb-2">${visitor.purpose.substring(0, 50)}${visitor.purpose.length > 50 ? '...' : ''}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">${new Date(visitor.entry_time).toLocaleString()}</small>
+                        <span class="badge bg-${statusClass}">${visitor.status}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function createVehicleCard(vehicle) {
+    const statusClass = vehicle.status === 'entered' ? 'success' : 'secondary';
+    const typeClass = vehicle.vehicle_type === 'bus' ? 'primary' : 'secondary';
+    
+    return `
+        <div class="col-md-6 col-lg-4 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h6 class="card-title mb-0">${vehicle.bus_number}</h6>
+                        <span class="badge bg-${typeClass}">${vehicle.vehicle_type}</span>
+                    </div>
+                    <p class="text-muted mb-1"><i class="bi bi-person me-1"></i>${vehicle.driver_name || 'N/A'}</p>
+                    <p class="text-muted mb-2">${vehicle.route || 'No route specified'}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">${new Date(vehicle.entry_time).toLocaleString()}</small>
+                        <span class="badge bg-${statusClass}">${vehicle.status}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+</script>
+{% endblock %}

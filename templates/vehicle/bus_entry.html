@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Bus Entry - SINCET Gate Entry System{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 500px;">
+    <div class="d-flex align-items-center mb-4">
+        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary me-3">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div>
+            <h1 class="h4 fw-bold mb-0">Bus Entry</h1>
+            <p class="text-muted mb-0">Register college bus</p>
+        </div>
+    </div>
+
+    <form method="POST">
+        <input type="hidden" name="vehicle_type" value="bus">
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-bus-front me-2"></i>Bus Details</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="vehicle_number" class="form-label">Bus Number *</label>
+                    <input type="text" class="form-control" id="vehicle_number" name="vehicle_number" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="driver_name" class="form-label">Driver Name</label>
+                    <input type="text" class="form-control" id="driver_name" name="driver_name">
+                </div>
+
+                <div class="mb-3">
+                    <label for="driver_phone" class="form-label">Driver Phone</label>
+                    <input type="tel" class="form-control" id="driver_phone" name="driver_phone">
+                </div>
+
+                <div class="mb-3">
+                    <label for="route" class="form-label">Route</label>
+                    <input type="text" class="form-control" id="route" name="route" 
+                           placeholder="e.g., City Center - College">
+                </div>
+
+                <div class="mb-3">
+                    <label for="passenger_count" class="form-label">Passenger Count</label>
+                    <input type="number" class="form-control" id="passenger_count" name="passenger_count" 
+                           min="0" max="100">
+                </div>
+
+                <div class="mb-3">
+                    <label for="notes" class="form-label">Notes</label>
+                    <textarea class="form-control" id="notes" name="notes" rows="2" 
+                              placeholder="Additional information..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Entry Time Display -->
+        <div class="card mb-4">
+            <div class="card-body text-center">
+                <i class="bi bi-clock me-2"></i>
+                <span class="text-muted">Entry Time: <span id="current-time"></span></span>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100 btn-lg">Register Bus</button>
+    </form>
+</div>
+
+<script>
+    // Update current time
+    function updateTime() {
+        document.getElementById('current-time').textContent = new Date().toLocaleString();
+    }
+    updateTime();
+    setInterval(updateTime, 1000);
+</script>
+{% endblock %}

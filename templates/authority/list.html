@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Authorities - SINCET Gate Entry System{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div class="d-flex align-items-center">
+            <a href="{{ url_for('index') }}" class="btn btn-outline-secondary me-3">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <div>
+                <h1 class="h4 fw-bold mb-0">Manage Authorities</h1>
+                <p class="text-muted mb-0">College authority management</p>
+            </div>
+        </div>
+        {% if current_user.role == 'admin' %}
+        <a href="{{ url_for('authority.add') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-2"></i>Add Authority
+        </a>
+        {% endif %}
+    </div>
+
+    {% if authorities %}
+    <div class="row">
+        {% for authority in authorities %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h6 class="card-title mb-0">{{ authority.name }}</h6>
+                        <span class="badge bg-{{ 'success' if authority.is_active else 'secondary' }}">
+                            {{ 'Active' if authority.is_active else 'Inactive' }}
+                        </span>
+                    </div>
+                    
+                    <p class="text-muted mb-2">
+                        <i class="bi bi-briefcase me-2"></i>{{ authority.designation }}
+                    </p>
+                    
+                    {% if authority.department %}
+                    <p class="text-muted mb-2">
+                        <i class="bi bi-building me-2"></i>{{ authority.department }}
+                    </p>
+                    {% endif %}
+                    
+                    {% if authority.phone %}
+                    <p class="text-muted mb-2">
+                        <i class="bi bi-phone me-2"></i>{{ authority.phone }}
+                    </p>
+                    {% endif %}
+                    
+                    {% if authority.email %}
+                    <p class="text-muted mb-3">
+                        <i class="bi bi-envelope me-2"></i>{{ authority.email }}
+                    </p>
+                    {% endif %}
+                    
+                    {% if current_user.role == 'admin' %}
+                    <div class="d-flex gap-2">
+                        <a href="{{ url_for('authority.edit', authority_id=authority.id) }}" 
+                           class="btn btn-outline-primary btn-sm flex-fill">
+                            <i class="bi bi-pencil me-1"></i>Edit
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <i class="bi bi-people fs-1 text-muted"></i>
+        <h4 class="mt-3 text-muted">No authorities found</h4>
+        <p class="text-muted">Add authorities to manage visitor approvals.</p>
+        {% if current_user.role == 'admin' %}
+        <a href="{{ url_for('authority.add') }}" class="btn btn-primary">Add First Authority</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

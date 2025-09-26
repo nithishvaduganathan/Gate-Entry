@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Pending Approvals - SINCET Gate Entry System{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex align-items-center mb-4">
+        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary me-3">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div>
+            <h1 class="h4 fw-bold mb-0">Pending Approvals</h1>
+            <p class="text-muted mb-0">Visitor permission requests</p>
+        </div>
+    </div>
+
+    {% if notifications %}
+    <div class="row">
+        {% for notification in notifications %}
+        {% if notification.visitor %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">{{ notification.title }}</h6>
+                    <span class="badge bg-warning">Pending</span>
+                </div>
+                <div class="card-body">
+                    <h6 class="mb-2">{{ notification.visitor.name }}</h6>
+                    
+                    <p class="text-muted mb-2">
+                        <i class="bi bi-phone me-2"></i>{{ notification.visitor.phone }}
+                    </p>
+                    
+                    {% if notification.visitor.email %}
+                    <p class="text-muted mb-2">
+                        <i class="bi bi-envelope me-2"></i>{{ notification.visitor.email }}
+                    </p>
+                    {% endif %}
+                    
+                    <p class="mb-3">
+                        <strong>Purpose:</strong><br>
+                        {{ notification.visitor.purpose }}
+                    </p>
+                    
+                    <p class="text-muted mb-3">
+                        <i class="bi bi-clock me-2"></i>
+                        Requested: {{ notification.created_at.strftime('%Y-%m-%d %H:%M') }}
+                    </p>
+                    
+                    {% if notification.visitor.notes %}
+                    <p class="text-muted mb-3">
+                        <strong>Notes:</strong> {{ notification.visitor.notes }}
+                    </p>
+                    {% endif %}
+                    
+                    <div class="d-flex gap-2">
+                        <form method="POST" action="{{ url_for('authority.approve_visitor', visitor_id=notification.visitor.id) }}" class="flex-fill">
+                            <button type="submit" class="btn btn-success w-100 btn-sm">
+                                <i class="bi bi-check-circle me-1"></i>Approve
+                            </button>
+                        </form>
+                        <form method="POST" action="{{ url_for('authority.reject_visitor', visitor_id=notification.visitor.id) }}" class="flex-fill">
+                            <button type="submit" class="btn btn-danger w-100 btn-sm">
+                                <i class="bi bi-x-circle me-1"></i>Reject
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <i class="bi bi-check-circle fs-1 text-success"></i>
+        <h4 class="mt-3 text-muted">No pending approvals</h4>
+        <p class="text-muted">All visitor requests have been processed.</p>
+        <a href="{{ url_for('index') }}" class="btn btn-primary">Back to Dashboard</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

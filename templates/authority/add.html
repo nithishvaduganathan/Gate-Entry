@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Add Authority - SINCET Gate Entry System{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 500px;">
+    <div class="d-flex align-items-center mb-4">
+        <a href="{{ url_for('authority.list') }}" class="btn btn-outline-secondary me-3">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div>
+            <h1 class="h4 fw-bold mb-0">Add Authority</h1>
+            <p class="text-muted mb-0">Create new authority</p>
+        </div>
+    </div>
+
+    <form method="POST">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-person-badge me-2"></i>Authority Details</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="name" class="form-label">Full Name *</label>
+                    <input type="text" class="form-control" id="name" name="name" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="designation" class="form-label">Designation *</label>
+                    <select class="form-select" id="designation" name="designation" required>
+                        <option value="">Select Designation</option>
+                        <option value="Principal">Principal</option>
+                        <option value="HOD">HOD</option>
+                        <option value="Staff">Staff</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="department" class="form-label">Department</label>
+                    <input type="text" class="form-control" id="department" name="department" 
+                           placeholder="e.g., Computer Science, Electronics">
+                </div>
+
+                <div class="mb-3">
+                    <label for="phone" class="form-label">Phone Number</label>
+                    <input type="tel" class="form-control" id="phone" name="phone" 
+                           placeholder="+91-XXXXXXXXXX">
+                </div>
+
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email Address</label>
+                    <input type="email" class="form-control" id="email" name="email" 
+                           placeholder="authority@college.edu">
+                </div>
+
+                <div class="mb-3">
+                    <label for="role" class="form-label">Role</label>
+                    <select class="form-select" id="role" name="role">
+                        <option value="staff">Staff</option>
+                        <option value="hod">HOD</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100 btn-lg">Add Authority</button>
+    </form>
+</div>
+{% endblock %}
