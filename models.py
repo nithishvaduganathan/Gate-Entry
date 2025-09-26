@@ -23,11 +23,10 @@ class Authority(db.Model):
     
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name = db.Column(db.String(100), nullable=False)
-    designation = db.Column(db.String(50), nullable=False)  # HOD, Principal, Staff
+    designation = db.Column(db.String(50), nullable=False)  # staff, faculty staff, hod, principal, admin
     department = db.Column(db.String(100))
     phone = db.Column(db.String(20))
     email = db.Column(db.String(120))
-    role = db.Column(db.String(20), default='staff')  # admin, hod, staff
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

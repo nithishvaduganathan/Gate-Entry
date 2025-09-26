@@ -29,9 +29,11 @@
                     <label for="designation" class="form-label">Designation *</label>
                     <select class="form-select" id="designation" name="designation" required>
                         <option value="">Select Designation</option>
-                        <option value="Principal">Principal</option>
-                        <option value="HOD">HOD</option>
-                        <option value="Staff">Staff</option>
+                        <option value="staff">Staff</option>
+                        <option value="faculty staff">Faculty Staff</option>
+                        <option value="hod">HOD</option>
+                        <option value="principal">Principal</option>
+                        <option value="admin">Admin</option>
                     </select>
                 </div>
 
@@ -54,13 +56,16 @@
                 </div>
 
                 <div class="mb-3">
-                    <label for="role" class="form-label">Role</label>
-                    <select class="form-select" id="role" name="role">
-                        <option value="staff">Staff</option>
-                        <option value="hod">HOD</option>
-                        <option value="admin">Admin</option>
-                    </select>
+                    <label for="password" class="form-label">Password *</label>
+                    <input type="password" class="form-control" id="password" name="password" required>
                 </div>
+
+                <div class="mb-3">
+                    <label for="confirm_password" class="form-label">Confirm Password *</label>
+                    <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                </div>
+
+
             </div>
         </div>
 

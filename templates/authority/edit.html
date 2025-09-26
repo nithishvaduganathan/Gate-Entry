@@ -30,9 +30,11 @@
                     <label for="designation" class="form-label">Designation *</label>
                     <select class="form-select" id="designation" name="designation" required>
                         <option value="">Select Designation</option>
-                        <option value="Principal" {% if authority.designation == 'Principal' %}selected{% endif %}>Principal</option>
-                        <option value="HOD" {% if authority.designation == 'HOD' %}selected{% endif %}>HOD</option>
-                        <option value="Staff" {% if authority.designation == 'Staff' %}selected{% endif %}>Staff</option>
+                        <option value="staff" {% if authority.designation == 'staff' %}selected{% endif %}>Staff</option>
+                        <option value="faculty staff" {% if authority.designation == 'faculty staff' %}selected{% endif %}>Faculty Staff</option>
+                        <option value="hod" {% if authority.designation == 'hod' %}selected{% endif %}>HOD</option>
+                        <option value="principal" {% if authority.designation == 'principal' %}selected{% endif %}>Principal</option>
+                        <option value="admin" {% if authority.designation == 'admin' %}selected{% endif %}>Admin</option>
                     </select>
                 </div>
 
@@ -54,14 +56,7 @@
                            value="{{ authority.email or '' }}" placeholder="authority@college.edu">
                 </div>
 
-                <div class="mb-3">
-                    <label for="role" class="form-label">Role</label>
-                    <select class="form-select" id="role" name="role">
-                        <option value="staff" {% if authority.role == 'staff' %}selected{% endif %}>Staff</option>
-                        <option value="hod" {% if authority.role == 'hod' %}selected{% endif %}>HOD</option>
-                        <option value="admin" {% if authority.role == 'admin' %}selected{% endif %}>Admin</option>
-                    </select>
-                </div>
+
 
                 <div class="mb-3">
                     <div class="form-check">

@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify
 from datetime import datetime
-from models import db, Authority, Visitor, Notification
+from models import db, Authority, Visitor, Notification, User
+from werkzeug.security import generate_password_hash
 
 authority_bp = Blueprint('authority', __name__, url_prefix='/authority')
 
@@ -32,29 +33,62 @@ def list():
 def add():
     if request.method == 'POST':
         try:
+            # Authority details
             name = request.form['name']
             designation = request.form['designation']
             department = request.form.get('department', '')
             phone = request.form.get('phone', '')
             email = request.form.get('email', '')
-            role = request.form.get('role', 'staff')
+
+            # User account details
+            password = request.form['password']
+            confirm_password = request.form['confirm_password']
+
+            # Validation
+            if not email or not password:
+                flash('Email and password are required for the user account.', 'error')
+                return render_template('authority/add.html')
             
+            if password != confirm_password:
+                flash('Passwords do not match.', 'error')
+                return render_template('authority/add.html')
+
+            if User.query.filter_by(username=email).first():
+                flash('A user with this email already exists.', 'error')
+                return render_template('authority/add.html')
+
+            # Create Authority
             authority = Authority(
                 name=name,
                 designation=designation,
                 department=department,
                 phone=phone,
-                email=email,
-                role=role
+                email=email
             )
-            
             db.session.add(authority)
+
+            # Determine User role based on designation
+            user_role = 'user'  # Default role
+            if designation in ['faculty staff', 'hod', 'principal']:
+                user_role = 'authority'
+            elif designation == 'admin':
+                user_role = 'admin'
+            
+            # Create User
+            user = User(
+                username=email,
+                password=generate_password_hash(password),
+                role=user_role
+            )
+            db.session.add(user)
+            
             db.session.commit()
             
-            flash('Authority added successfully!', 'success')
+            flash('Authority and user account created successfully!', 'success')
             return redirect(url_for('authority.list'))
             
         except Exception as e:
+            db.session.rollback()
             flash(f'Error adding authority: {str(e)}', 'error')
     
     return render_template('authority/add.html')
@@ -71,8 +105,17 @@ def edit(authority_id):
             authority.department = request.form.get('department', '')
             authority.phone = request.form.get('phone', '')
             authority.email = request.form.get('email', '')
-            authority.role = request.form.get('role', 'staff')
             authority.is_active = 'is_active' in request.form
+
+            # Update user role as well
+            user = User.query.filter_by(username=authority.email).first()
+            if user:
+                user_role = 'user'  # Default role
+                if authority.designation in ['faculty staff', 'hod', 'principal']:
+                    user_role = 'authority'
+                elif authority.designation == 'admin':
+                    user_role = 'admin'
+                user.role = user_role
             
             db.session.commit()
             
