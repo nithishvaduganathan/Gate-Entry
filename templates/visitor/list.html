@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}All Visitors - SINCET Gate Entry System{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex align-items-center mb-4">
+        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary me-3">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div>
+            <h1 class="h4 fw-bold mb-0">All Visitors</h1>
+            <p class="text-muted mb-0">Complete visitor records</p>
+        </div>
+    </div>
+
+    <!-- Search and Filter -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-6">
+                    <input type="text" class="form-control" name="search" value="{{ search }}" 
+                           placeholder="Search by name, phone, or email...">
+                </div>
+                <div class="col-md-4">
+                    <select class="form-select" name="status">
+                        <option value="">All Status</option>
+                        <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                        <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>Approved</option>
+                        <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>Rejected</option>
+                        <option value="exited" {% if status_filter == 'exited' %}selected{% endif %}>Exited</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">Search</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Visitors Table -->
+    {% if visitors.items %}
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Phone</th>
+                            <th>Purpose</th>
+                            <th>Entry Time</th>
+                            <th>Status</th>
+                            <th>Exit Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for visitor in visitors.items %}
+                        <tr>
+                            <td>
+                                <strong>{{ visitor.name }}</strong>
+                                {% if visitor.email %}<br><small class="text-muted">{{ visitor.email }}</small>{% endif %}
+                            </td>
+                            <td>{{ visitor.phone }}</td>
+                            <td>{{ visitor.purpose[:50] }}{% if visitor.purpose|length > 50 %}...{% endif %}</td>
+                            <td>{{ visitor.entry_time.strftime('%Y-%m-%d %H:%M') if visitor.entry_time else 'N/A' }}</td>
+                            <td>
+                                <span class="badge bg-{{ 'success' if visitor.status == 'approved' else 'warning' if visitor.status == 'pending' else 'danger' if visitor.status == 'rejected' else 'secondary' }}">
+                                    {{ visitor.status.title() }}
+                                </span>
+                            </td>
+                            <td>{{ visitor.exit_time.strftime('%Y-%m-%d %H:%M') if visitor.exit_time else 'Still inside' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if visitors.pages > 1 %}
+            <nav aria-label="Visitor pagination">
+                <ul class="pagination justify-content-center">
+                    {% if visitors.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('visitor.list', page=visitors.prev_num, search=search, status=status_filter) }}">Previous</a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for page_num in visitors.iter_pages() %}
+                        {% if page_num %}
+                            {% if page_num != visitors.page %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('visitor.list', page=page_num, search=search, status=status_filter) }}">{{ page_num }}</a>
+                            </li>
+                            {% else %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ page_num }}</span>
+                            </li>
+                            {% endif %}
+                        {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if visitors.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('visitor.list', page=visitors.next_num, search=search, status=status_filter) }}">Next</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <i class="bi bi-person-slash fs-1 text-muted"></i>
+        <h4 class="mt-3 text-muted">No visitors found</h4>
+        <p class="text-muted">No visitors match your search criteria.</p>
+        <a href="{{ url_for('visitor.entry') }}" class="btn btn-primary">Register New Visitor</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

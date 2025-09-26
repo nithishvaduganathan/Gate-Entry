@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="min-vh-100 d-flex align-items-center justify-content-center p-4">
+    <div class="container" style="max-width: 400px;">
+        <!-- Header -->
+        <div class="text-center mb-4">
+            <img src="{{ url_for('static', filename='sincet1.png') }}" alt="SINCET Logo" height="60" class="mb-3">
+            <h1 class="h3 fw-bold text-dark">SINCET Gate Entry System</h1>
+            <p class="text-muted">Welcome, {{ user.username }}</p>
+        </div>
+
+        <!-- Main Menu -->
+        <div class="row g-3">
+            <!-- Visitor Management -->
+            {% if user.role != 'authority' %}
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h6 class="mb-0"><i class="bi bi-person-plus me-2"></i>Visitor Management</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <a href="{{ url_for('visitor.entry') }}" class="btn btn-outline-primary w-100 d-flex flex-column align-items-center py-3">
+                                    <i class="bi bi-person-plus fs-4 mb-1"></i>
+                                    <small>New Visitor</small>
+                                </a>
+                            </div>
+                            <div class="col-6">
+                                <a href="{{ url_for('visitor.exit') }}" class="btn btn-outline-primary w-100 d-flex flex-column align-items-center py-3">
+                                    <i class="bi bi-person-dash fs-4 mb-1"></i>
+                                    <small>Visitor Exit</small>
+                                </a>
+                            </div>
+                        </div>
+                        <a href="{{ url_for('visitor.list') }}" class="btn btn-outline-primary w-100 mt-2">
+                            <i class="bi bi-list-ul me-2"></i>View All Visitors
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Vehicle Management -->
+            {% if user.role != 'authority' %}
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-success text-white">
+                        <h6 class="mb-0"><i class="bi bi-truck me-2"></i>Vehicle Management</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <a href="{{ url_for('vehicle.entry') }}" class="btn btn-outline-success w-100 d-flex flex-column align-items-center py-3">
+                                    <i class="bi bi-truck fs-4 mb-1"></i>
+                                    <small>Vehicle Entry</small>
+                                </a>
+                            </div>
+                            <div class="col-6">
+                                <a href="{{ url_for('vehicle.exit') }}" class="btn btn-outline-success w-100 d-flex flex-column align-items-center py-3">
+                                    <i class="bi bi-truck fs-4 mb-1"></i>
+                                    <small>Vehicle Exit</small>
+                                </a>
+                            </div>
+                        </div>
+                        <a href="{{ url_for('vehicle.list') }}" class="btn btn-outline-success w-100 mt-2">
+                            <i class="bi bi-list-ul me-2"></i>View All Vehicles
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Authority Panel -->
+            {% if user.role in ['authority', 'admin'] %}
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-warning text-dark">
+                        <h6 class="mb-0"><i class="bi bi-shield-check me-2"></i>Authority Panel</h6>
+                    </div>
+                    <div class="card-body">
+                        <a href="{{ url_for('authority.approvals') }}" class="btn btn-outline-warning w-100 mb-2">
+                            <i class="bi bi-person-check me-2"></i>Pending Approvals
+                        </a>
+                        {% if user.role == 'admin' %}
+                        <a href="{{ url_for('authority.list') }}" class="btn btn-outline-warning w-100">
+                            <i class="bi bi-people me-2"></i>Manage Authorities
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Reports & Analytics -->
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-info text-white">
+                        <h6 class="mb-0"><i class="bi bi-graph-up me-2"></i>Reports & Analytics</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <a href="{{ url_for('dashboard.index') }}" class="btn btn-outline-info w-100 d-flex flex-column align-items-center py-3">
+                                    <i class="bi bi-speedometer2 fs-4 mb-1"></i>
+                                    <small>Dashboard</small>
+                                </a>
+                            </div>
+                            <div class="col-6">
+                                <a href="{{ url_for('dashboard.reports') }}" class="btn btn-outline-info w-100 d-flex flex-column align-items-center py-3">
+                                    <i class="bi bi-file-text fs-4 mb-1"></i>
+                                    <small>Reports</small>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
