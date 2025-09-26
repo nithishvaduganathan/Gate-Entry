@@ -31,13 +31,14 @@ function initializeApp() {
         initializeCamera();
     }
 
-    // Initialize speech recognition if present
     if (document.getElementById('speechModal')) {
         initializeSpeechRecognition();
     }
 
     // Auto-refresh dashboard stats
     if (document.querySelector('.dashboard-stats')) {
+        // Refresh immediately on load, then every 30 seconds
+        refreshDashboardStats();
         setInterval(refreshDashboardStats, 30000); // Refresh every 30 seconds
     }
 }
