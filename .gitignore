@@ -26,5 +26,43 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+.env
+.env.*
+instance/
+*.sqlite3
+*.db
+
+# Flask
+static/uploads/
+
+# IDE/editor
+.vscode/
+.idea/
+.DS_Store
+
+# Legacy Next.js/TypeScript (optional; ignore if keeping files)
+app/
+lib/
+hooks/
+types/
+styles/
+public/
+middleware.ts
+next.config.mjs
+postcss.config.mjs
+tsconfig.json
+package.json
+package-lock.json
+pnpm-lock.yaml
 
 gate/*
